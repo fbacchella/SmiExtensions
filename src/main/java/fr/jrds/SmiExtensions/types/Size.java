@@ -10,6 +10,11 @@ import fr.jrds.SmiExtensions.log.LogAdapter;
 
 public class Size {
 
+    public static class Parsing {
+        int[] content = null;
+        int[] next = null;
+    }
+
     LogAdapter logger = LogAdapter.getLogger(Size.class);
 
     private static class Range {
@@ -34,6 +39,7 @@ public class Size {
     }
 
     private final List<Range> ranges = new ArrayList<>();
+    private boolean variableSize = false;
 
     public Size(String sizes) {
         Matcher m = p.matcher(sizes);
@@ -51,6 +57,7 @@ public class Size {
                 int from = Integer.parseInt(m.group("from"));
                 int to = Integer.parseInt(m.group("to"));
                 ranges.add(new Range(from, to));
+                variableSize = true;
             } else if(m.group("size") != null) {
                 int from = Integer.parseInt(m.group("value"));
                 int to = Integer.parseInt(m.group("value"));
@@ -59,19 +66,40 @@ public class Size {
             if(m.group("choice") != null) {
                 m.region(m.start("choice"), m.end());
                 parse(m);
+                variableSize = true;
             }
             return true;
         }
         return false;
     }
 
-    public int[] extract(int[] oidElements) {
-        int[] tryExtract = null;
+    public Parsing extract(int[] oidElements) {
+        Parsing tryExtract = new Parsing();
         for(Range i: ranges) {
-            if (oidElements.length >= i.from && oidElements.length <= i.to) {
-                return oidElements;
+            if(variableSize) {
+                int size = oidElements[0];
+                if(size == 0) {
+                    tryExtract.content = new int[0];
+                    tryExtract.next = oidElements;
+                } if(oidElements.length >= size) {
+                    tryExtract.content = Arrays.copyOfRange(oidElements, 1, size + 1);
+                    if(size + 1 <= oidElements.length) {
+                        tryExtract.next = Arrays.copyOfRange(oidElements, size + 1, oidElements.length);
+                    } else {
+                        tryExtract.next = null;
+                    }
+                }
+            } else if (oidElements.length >= i.from && oidElements.length <= i.to) {
+                tryExtract.content = oidElements;
+                tryExtract.next = null;
+                return tryExtract;
             } else if (oidElements.length >= i.from) {
-                tryExtract = Arrays.copyOf(oidElements, i.to);
+                tryExtract.content = Arrays.copyOf(oidElements, i.to);
+                if(i.to + 1 <= oidElements.length) {
+                    tryExtract.next = Arrays.copyOfRange(oidElements, i.to, oidElements.length);
+                } else {
+                    tryExtract.next = null;
+                }
             }
         }
         return tryExtract;
@@ -81,6 +109,5 @@ public class Size {
     public String toString() {
         return ranges.toString();
     }
-    
-    
+
 }

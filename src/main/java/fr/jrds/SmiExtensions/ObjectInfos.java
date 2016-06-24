@@ -32,7 +32,7 @@ public class ObjectInfos {
         EnumVal {
             @Override
             protected Variable getVariable() {
-                return new org.snmp4j.smi.Opaque();
+                return new org.snmp4j.smi.Integer32();
             }
         },
         String {

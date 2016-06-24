@@ -159,7 +159,6 @@ public class MibTree {
         List<Variable> parts = new ArrayList<Variable>();
         int[] foundOID = found.getElements();
         parts.add(new OctetString(found.getObject().name));
-        //StringBuffer result = new StringBuffer();
         //The full path was not found, try to resolve the left other
         if(foundOID.length < oid.length ) {
             ObjectInfos parent = top.find(Arrays.copyOf(foundOID, foundOID.length -1 )).getObject();

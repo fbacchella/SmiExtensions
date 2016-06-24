@@ -1,9 +1,23 @@
 package fr.jrds.SmiExtensions;
 
+import java.io.IOException;
+
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.snmp4j.log.LogLevel;
+
+import fr.jrds.SmiExtensions.log.LogAdapter;
+import fr.jrds.SmiExtensions.utils.LogUtils;
 
 public class OidTreeNodeTest {
+
+    private static final LogAdapter logger = LogAdapter.getLogger(OidTreeNodeTest.class);
+
+    @BeforeClass
+    static public void configure() throws IOException {
+        LogUtils.setLevel(logger, LogLevel.TRACE);
+    }
 
     @Test
     public void manualfill() {

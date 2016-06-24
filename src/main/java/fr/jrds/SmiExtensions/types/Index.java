@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 
 import fr.jrds.SmiExtensions.MibTree;
@@ -41,20 +42,25 @@ public class Index {
                 logger.error("index not found: %s", i);
                 break;
             }
-            int[] toformat;
+            Size.Parsing parsed;
             if(oi.size != null) {
-                toformat = oi.size.extract(oidParsed);
+                parsed = oi.size.extract(oidParsed);
             } else {
-                toformat = Arrays.copyOf(oidParsed, 1);
+                parsed = new Size.Parsing();
+                parsed.content = Arrays.copyOf(oidParsed, 1);
+                if(oidParsed.length > 1) {
+                    parsed.next = Arrays.copyOfRange(oidParsed, 1, oidParsed.length);
+                }
             }
-            if(toformat == null) {
+            if(parsed == null) {
                 break;
             }
-            oidParsed = Arrays.copyOfRange(oidParsed, toformat.length, oidParsed.length);
-            indexesValues.add(oi.type.make(toformat));
-            if(oidParsed.length == 0) {
-                break;
+            Variable v = oi.type.make(parsed.content);
+            if(oi.type == ObjectInfos.SnmpType.EnumVal) {
+                v = new OctetString(String.format("%s(%d)", oi.values.resolve(v.toInt()), v.toInt()));
             }
+            indexesValues.add(v);
+            oidParsed = parsed.next;
         }
         return indexesValues.toArray(new Variable[indexesValues.size()]);
     }
