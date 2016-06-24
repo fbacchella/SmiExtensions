@@ -25,7 +25,6 @@ import fr.jrds.SMI4J.types.EnumVal;
 import fr.jrds.SMI4J.types.Index;
 import fr.jrds.SMI4J.types.Size;
 import fr.jrds.SMI4J.utils.LogAdapter;
-import fr.jrds.SMI4J.utils.Utils;
 
 public class MibTree {
 
