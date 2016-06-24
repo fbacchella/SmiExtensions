@@ -1,4 +1,4 @@
-package fr.jrds.SMI4J;
+package fr.jrds.SmiExtensions;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -6,9 +6,9 @@ import java.util.Map;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.Variable;
 
-import fr.jrds.SMI4J.types.EnumVal;
-import fr.jrds.SMI4J.types.Index;
-import fr.jrds.SMI4J.types.Size;
+import fr.jrds.SmiExtensions.types.EnumVal;
+import fr.jrds.SmiExtensions.types.Index;
+import fr.jrds.SmiExtensions.types.Size;
 
 public class ObjectInfos {
     enum Attribute {

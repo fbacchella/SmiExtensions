@@ -1,4 +1,4 @@
-package fr.jrds.SMI4J.types;
+package fr.jrds.SmiExtensions.types;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,9 +8,9 @@ import java.util.regex.Pattern;
 
 import org.snmp4j.smi.Variable;
 
-import fr.jrds.SMI4J.MibTree;
-import fr.jrds.SMI4J.ObjectInfos;
-import fr.jrds.SMI4J.utils.LogAdapter;
+import fr.jrds.SmiExtensions.MibTree;
+import fr.jrds.SmiExtensions.ObjectInfos;
+import fr.jrds.SmiExtensions.log.LogAdapter;
 
 public class Index {
     

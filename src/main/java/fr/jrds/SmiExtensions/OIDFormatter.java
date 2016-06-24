@@ -1,4 +1,4 @@
-package fr.jrds.SMI4J;
+package fr.jrds.SmiExtensions;
 
 import java.text.ParseException;
 import java.util.stream.IntStream;

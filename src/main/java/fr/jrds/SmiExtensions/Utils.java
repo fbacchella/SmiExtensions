@@ -1,9 +1,10 @@
-package fr.jrds.SMI4J.utils;
+package fr.jrds.SmiExtensions;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class Utils {
+    
     public static boolean startsWith(int[] test, int[] prefix) {
         if(prefix.length > test.length) {
             return false;

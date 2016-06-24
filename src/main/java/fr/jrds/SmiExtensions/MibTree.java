@@ -1,4 +1,4 @@
-package fr.jrds.SMI4J;
+package fr.jrds.SmiExtensions;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,12 +19,12 @@ import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 
-import fr.jrds.SMI4J.ObjectInfos.Attribute;
-import fr.jrds.SMI4J.ObjectInfos.SnmpType;
-import fr.jrds.SMI4J.types.EnumVal;
-import fr.jrds.SMI4J.types.Index;
-import fr.jrds.SMI4J.types.Size;
-import fr.jrds.SMI4J.utils.LogAdapter;
+import fr.jrds.SmiExtensions.ObjectInfos.Attribute;
+import fr.jrds.SmiExtensions.ObjectInfos.SnmpType;
+import fr.jrds.SmiExtensions.log.LogAdapter;
+import fr.jrds.SmiExtensions.types.EnumVal;
+import fr.jrds.SmiExtensions.types.Index;
+import fr.jrds.SmiExtensions.types.Size;
 
 public class MibTree {
 

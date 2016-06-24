@@ -1,4 +1,4 @@
-package fr.jrds.SMI4J;
+package fr.jrds.SmiExtensions;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -9,8 +9,9 @@ import org.snmp4j.log.LogLevel;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.Variable;
 
-import fr.jrds.SMI4J.utils.LogAdapter;
 import fr.jrds.SMI4J.utils.LogUtils;
+import fr.jrds.SmiExtensions.MibTree;
+import fr.jrds.SmiExtensions.log.LogAdapter;
 
 
 public class LoadTest {

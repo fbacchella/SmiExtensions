@@ -1,4 +1,4 @@
-package fr.jrds.SMI4J.types;
+package fr.jrds.SmiExtensions.types;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import fr.jrds.SMI4J.utils.LogAdapter;
+import fr.jrds.SmiExtensions.log.LogAdapter;
 
 public class Size {
 

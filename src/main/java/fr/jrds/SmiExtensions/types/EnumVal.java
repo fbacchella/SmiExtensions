@@ -1,4 +1,4 @@
-package fr.jrds.SMI4J.types;
+package fr.jrds.SmiExtensions.types;
 
 import java.util.HashMap;
 import java.util.Map;

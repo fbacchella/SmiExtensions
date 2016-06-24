@@ -5,6 +5,8 @@ import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
 
+import fr.jrds.SmiExtensions.types.Size;
+
 public class SizeTest {
     
     @Test
