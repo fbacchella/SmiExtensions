@@ -1,4 +1,4 @@
-package fr.jrds.SMI4J.utils;
+package fr.jrds.SmiExtensions.utils;
 
 import org.snmp4j.log.ConsoleLogFactory;
 import org.snmp4j.log.LogFactory;

@@ -50,43 +50,38 @@ public class MibTree {
     private final OidTreeNode top = new OidTreeNode();
 
     public MibTree() {
-        InputStream is = getClass().getClassLoader().getResourceAsStream("mibstree.txt");
-        try {
-            load(new InputStreamReader(is, Charset.forName("US-ASCII")));
-        } catch (IOException e) {
-            throw new RuntimeException("impossible to load default mibstree", e);
+        this(false);
+    }
+
+    public MibTree(boolean empty) {
+        if(! empty) {
+            InputStream is = getClass().getClassLoader().getResourceAsStream("mibstree.txt");
+            try {
+                load(new InputStreamReader(is, Charset.forName("US-ASCII")));
+            } catch (IOException e) {
+                throw new RuntimeException("impossible to load default mibstree", e);
+            }
         }
     }
 
     public void load(InputStream is) throws IOException {
         load(new InputStreamReader(is));
     }
-    
+
     public void load(Reader reader) throws IOException {
         BufferedReader linereader = new BufferedReader(reader);
         int linenumber = 0;
         int olddepth = -1;
         List<Integer> oidBuilder = new ArrayList<>();
         String line;
-        Map<Attribute, Object> current = Collections.emptyMap();
+        Map<Attribute, Object> current = new HashMap<>();
         while((line = linereader.readLine()) != null) {
             linenumber++;
             Matcher m = p.matcher(line);
             if(m.matches()) {
                 if(m.group("object") != null || m.group("type") != null) {
                     // Save the last object
-                    if(current.size() > 0) {
-                        ObjectInfos oi = new ObjectInfos(current);
-                        if(oi.oidElements != null) {
-                            if(oi.name != null) {
-                                top.add(oi);
-                                if(_names.put(oi.name, oi) != null) {
-                                    logger.warn("duplicate name: %s", oi.name);
-                                };
-                            }
-                        }
-                    }
-                    current = new HashMap<>();
+                    saveObject(current);
                     String depthGroupContent;
                     String oidGroupContent;
                     String objectName;
@@ -138,6 +133,22 @@ public class MibTree {
                 logger.error("invalid line %s: '%s'",linenumber, line);
             }
         }
+        saveObject(current);
+    }
+
+    private void saveObject(Map<Attribute, Object> current) {
+        if(current.size() > 0) {
+            ObjectInfos oi = new ObjectInfos(current);
+            if(oi.oidElements != null) {
+                if(oi.name != null) {
+                    top.add(oi);
+                    if(_names.put(oi.name, oi) != null) {
+                        logger.warn("duplicate name: %s", oi.name);
+                    };
+                }
+            }
+            current.clear();
+        }
     }
 
     public Variable[] parseIndexOID(int[] oid) {
@@ -159,7 +170,7 @@ public class MibTree {
         }
         return parts.toArray(new Variable[parts.size()]);
     }
-    
+
     public ObjectInfos getInfos(String oidString) {
         if(names.containsKey(oidString)) {
             return names.get(oidString);

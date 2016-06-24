@@ -9,10 +9,10 @@ import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.log.LogLevel;
 import org.snmp4j.smi.OID;
 
-import fr.jrds.SMI4J.utils.LogUtils;
 import fr.jrds.SmiExtensions.MibTree;
 import fr.jrds.SmiExtensions.OIDFormatter;
 import fr.jrds.SmiExtensions.log.LogAdapter;
+import fr.jrds.SmiExtensions.utils.LogUtils;
 
 public class Snmp4jTest {
     

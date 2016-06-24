@@ -3,15 +3,16 @@ package fr.jrds.SmiExtensions;
 import java.io.IOException;
 import java.util.Arrays;
 
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.snmp4j.log.LogLevel;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.Variable;
 
-import fr.jrds.SMI4J.utils.LogUtils;
 import fr.jrds.SmiExtensions.MibTree;
 import fr.jrds.SmiExtensions.log.LogAdapter;
+import fr.jrds.SmiExtensions.utils.LogUtils;
 
 
 public class LoadTest {
@@ -20,9 +21,32 @@ public class LoadTest {
 
     @BeforeClass
     static public void configure() throws IOException {
-        LogUtils.setLevel(logger, LogLevel.TRACE, "loghub.SmartContext", "loghub.receivers.SnmpTrap", "loghub.Receiver", "loghub.SMIResolve");
+        LogUtils.setLevel(logger, LogLevel.TRACE);
     }
 
+    @Test
+    public void testDefaultLoad() {
+        MibTree resolver = new MibTree();
+        Assert.assertEquals("std", resolver.getInfos("std").name);
+        Assert.assertEquals("ipOutDiscards", resolver.getInfos("ipOutDiscards").name);
+    }
+    
+    @Test
+    public void testEmptyLoad() throws IOException {
+        MibTree resolver = new MibTree(true);
+        resolver.load(getClass().getClassLoader().getResourceAsStream("custommibs.txt"));
+        Assert.assertEquals("testprivate", resolver.getInfos("testprivate").name);
+    }
+
+    @Test
+    public void testCustomLoad() throws IOException {
+        MibTree resolver = new MibTree(false);
+        resolver.load(getClass().getClassLoader().getResourceAsStream("custommibs.txt"));
+        Assert.assertEquals("std", resolver.getInfos("std").name);
+        Assert.assertEquals("ipOutDiscards", resolver.getInfos("ipOutDiscards").name);
+        Assert.assertEquals("testprivate", resolver.getInfos("testprivate").name);
+    }
+    
     @Test
     public void testparseetree() throws InterruptedException, IOException {
         MibTree resolver = new MibTree();
