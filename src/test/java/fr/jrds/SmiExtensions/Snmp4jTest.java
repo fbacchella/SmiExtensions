@@ -27,13 +27,15 @@ public class Snmp4jTest {
     public void testparseetree() throws InterruptedException, IOException {
         
         MibTree resolver = new MibTree();
+        resolver.load(getClass().getClassLoader().getResourceAsStream("custommibs.txt"));
+        Assert.assertEquals("dot1xPaeConformance", resolver.getInfos("dot1xPaeConformance").name);
 
         SNMP4JSettings.setOIDTextFormat(new OIDFormatter(resolver));
-
         
         Assert.assertEquals("std", new OID("std").format());
         Assert.assertEquals("dot1xPaeConformance", new OID("dot1xPaeConformance").format());
         Assert.assertEquals("cevPaPosswSm", new OID("cevPaPosswSm").format());
+        Assert.assertEquals("testprivate", new OID("testprivate").format());
     }
 
 }

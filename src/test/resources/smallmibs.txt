@@ -1,0 +1,38 @@
++--iso(1)
+   |
+   +--std(0)
+   |  |
+   |  +--iso8802(8802)
+   |     |
+   |     +--ieee802dot1(1)
+   |        |
+   |        +--ieee802dot1mibs(1)
+   |           |
+   |           +--ieee8021paeMIB(1)
+   |           |  |
+   |           |  +--paeMIBObjects(1)
+   |           |  |  |
+   |           |  |  +--dot1xPaeSystem(1)
+   |           |  |  |  |
+   |           |  |  |  +-- -RW- EnumVal   dot1xPaeSystemAuthControl(1)
+   |           |  |  |  |        Values: enabled(1), disabled(2)
+   |           |  |  |  |
+   |           |  |  |  +--dot1xPaePortTable(2)
+   |           |  |  |     |
+   |           |  |  |     +--dot1xPaePortEntry(1)
+   |           |  |  |        |  Index: dot1xPaePortNumber
+   |           |  |  |        |
+   |           |  |  |        +-- ---- Integer32 dot1xPaePortNumber(1)
+   |           |  |  |        |        Textual Convention: InterfaceIndex
+   |           |  |  |        |        Range: 1..2147483647
+   |           |  |  |        +-- -R-- Unsigned  dot1xPaePortProtocolVersion(2)
+   |           |  |  |        +-- -R-- BitString dot1xPaePortCapabilities(3)
+   |           |  |  |        |        Values: dot1xPaePortAuthCapable(0), dot1xPaePortSuppCapable(1)
+   |           |  |  |        +-- -RW- EnumVal   dot1xPaePortInitialize(4)
+   |           |  |  |        |        Textual Convention: TruthValue
+   |           |  |  |        |        Values: true(1), false(2)
+   |           |  |  |        +-- -RW- EnumVal   dot1xPaePortReauthenticate(5)
+   |           |  |  |                 Textual Convention: TruthValue
+   |           |  |  |                 Values: true(1), false(2)
+   |           |  |  |
+   |           |  |  +--dot1xPaeAuthenticator(2)

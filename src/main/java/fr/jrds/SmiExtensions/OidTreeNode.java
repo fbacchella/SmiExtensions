@@ -24,10 +24,23 @@ public class OidTreeNode {
     }
 
     public void add(ObjectInfos object) {
+        if(find(object.oidElements) != null) {
+            //already exists, don't add
+            return;
+        }
         int[] elements = object.oidElements;
         int[] oidParent = Arrays.copyOf(elements, elements.length - 1);
-        OidTreeNode parent = root.search(oidParent, 0);
-        new OidTreeNode(parent, elements[elements.length - 1], object);
+        //Adding a first level child
+        if(oidParent.length == 0) {
+            new OidTreeNode(root, elements[elements.length - 1], object);
+        } else {
+            OidTreeNode parent = root.find(oidParent);
+            if(parent != null) {
+                new OidTreeNode(parent, elements[elements.length - 1], object);
+            } else {
+                throw new IllegalStateException("adding orphan child " + object);
+            }
+        }
     }
 
     public ObjectInfos getObject() {
@@ -40,7 +53,7 @@ public class OidTreeNode {
 
     public OidTreeNode find(int[] oid) {
         OidTreeNode found = search(oid, true);
-        if(Arrays.equals(oid, found.object.oidElements)) {
+        if(found!= null && Arrays.equals(oid, found.object.oidElements)) {
             return found;
         } else {
             return null;
