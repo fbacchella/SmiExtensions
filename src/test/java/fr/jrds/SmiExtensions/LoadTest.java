@@ -7,17 +7,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.snmp4j.log.LogLevel;
 
-import fr.jrds.SmiExtensions.log.LogAdapter;
 import fr.jrds.SmiExtensions.utils.LogUtils;
 
 
 public class LoadTest {
 
-    private static final LogAdapter logger = LogAdapter.getLogger(LoadTest.class);
-
     @BeforeClass
     static public void configure() throws IOException {
-        LogUtils.setLevel(logger, LogLevel.TRACE);
+        LogUtils.setLevel(LoadTest.class, LogLevel.TRACE, MibTree.class.getName());
     }
 
     @Test

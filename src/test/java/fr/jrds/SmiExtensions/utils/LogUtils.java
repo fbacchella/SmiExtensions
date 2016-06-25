@@ -8,12 +8,14 @@ import fr.jrds.SmiExtensions.log.LogAdapter;
 
 public class LogUtils {
 
-    public static void setLevel(LogAdapter logger, LogLevel level, String... loggers) {
+    public static LogAdapter setLevel(Class<?> clazz, LogLevel level, String... loggers) {
         LogFactory.setLogFactory(new ConsoleLogFactory());
+        LogAdapter logger = LogAdapter.getLogger(clazz);
         logger.setLogLevel(level);
         for(String c: loggers) {
             LogFactory.getLogger(c).setLogLevel(level);
         }
+        return logger;
     }
 
 }

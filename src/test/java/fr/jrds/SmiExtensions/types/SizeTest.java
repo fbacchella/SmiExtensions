@@ -6,7 +6,7 @@ import org.junit.Test;
 import fr.jrds.SmiExtensions.types.Size;
 
 public class SizeTest {
-    
+
     @Test
     public void one() {
         Size s = new Size("4");

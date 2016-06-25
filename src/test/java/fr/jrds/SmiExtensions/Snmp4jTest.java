@@ -11,16 +11,13 @@ import org.snmp4j.smi.OID;
 
 import fr.jrds.SmiExtensions.MibTree;
 import fr.jrds.SmiExtensions.OIDFormatter;
-import fr.jrds.SmiExtensions.log.LogAdapter;
 import fr.jrds.SmiExtensions.utils.LogUtils;
 
 public class Snmp4jTest {
-    
-    private static final LogAdapter logger = LogAdapter.getLogger(Snmp4jTest.class);
 
     @BeforeClass
     static public void configure() throws IOException {
-        LogUtils.setLevel(logger, LogLevel.TRACE);
+        LogUtils.setLevel(Snmp4jTest.class, LogLevel.TRACE, MibTree.class.getName());
     }
 
     @Test

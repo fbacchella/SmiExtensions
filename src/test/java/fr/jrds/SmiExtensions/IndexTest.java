@@ -15,21 +15,20 @@ import fr.jrds.SmiExtensions.utils.LogUtils;
 
 public class IndexTest {
 
-    private static final LogAdapter logger = LogAdapter.getLogger(IndexTest.class);
+    private static LogAdapter logger;
 
     private static final MibTree resolver = new MibTree();
 
     @BeforeClass
     static public void configure() throws IOException {
-        LogUtils.setLevel(logger, LogLevel.TRACE);
+        logger = LogUtils.setLevel(IndexTest.class, LogLevel.TRACE);
         SNMP4JSettings.setOIDTextFormat(new OIDFormatter(resolver));
 
     }
 
     public void check(OID trap, String expected) {
         Object[] parsed = resolver.parseIndexOID(trap.getValue());
-        //System.out.println(Arrays.toString(parsed));
-        logger.warn("%s %s", trap, parsed);
+        logger.warn("trap %s resovled as %s", trap.getValue(), parsed);
         Assert.assertEquals(expected, Arrays.toString(parsed));
     }
 
@@ -51,8 +50,6 @@ public class IndexTest {
     @Test
     public void fromFAQ() {
         OID vacmAccessContextMatch = new OID("1.3.6.1.6.3.16.1.4.1.4.7.118.51.103.114.111.117.112.0.3.1");
-        System.out.println(vacmAccessContextMatch.toString());
-
         Assert.assertEquals("vacmAccessContextMatch[v3group][][3][noAuthNoPriv(1)]", vacmAccessContextMatch.toString());
     }
 
