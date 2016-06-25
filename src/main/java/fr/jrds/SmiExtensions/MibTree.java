@@ -17,7 +17,6 @@ import java.util.regex.Pattern;
 
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
-import org.snmp4j.smi.Variable;
 
 import fr.jrds.SmiExtensions.ObjectInfos.Attribute;
 import fr.jrds.SmiExtensions.ObjectInfos.SnmpType;
@@ -151,12 +150,12 @@ public class MibTree {
         }
     }
 
-    public Variable[] parseIndexOID(int[] oid) {
+    public Object[] parseIndexOID(int[] oid) {
         OidTreeNode found = top.search(oid);
         if(found == null) {
-            return new Variable[] {new OID(oid)};
+            return new Object[] {new OID(oid)};
         }
-        List<Variable> parts = new ArrayList<Variable>();
+        List<Object> parts = new ArrayList<Object>();
         int[] foundOID = found.getElements();
         parts.add(new OctetString(found.getObject().name));
         //The full path was not found, try to resolve the left other
@@ -167,7 +166,7 @@ public class MibTree {
                 Arrays.stream(parent.index.resolve(index)).forEach(i -> parts.add(i));
             }
         }
-        return parts.toArray(new Variable[parts.size()]);
+        return parts.toArray(new Object[parts.size()]);
     }
 
     public ObjectInfos getInfos(String oidString) {

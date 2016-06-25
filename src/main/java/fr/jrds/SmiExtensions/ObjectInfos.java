@@ -1,16 +1,27 @@
 package fr.jrds.SmiExtensions;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Map;
 
+import org.snmp4j.asn1.BER;
+import org.snmp4j.asn1.BERInputStream;
+import org.snmp4j.smi.IpAddress;
 import org.snmp4j.smi.OID;
+import org.snmp4j.smi.OctetString;
+import org.snmp4j.smi.Opaque;
+import org.snmp4j.smi.TimeTicks;
 import org.snmp4j.smi.Variable;
 
+import fr.jrds.SmiExtensions.log.LogAdapter;
 import fr.jrds.SmiExtensions.types.EnumVal;
 import fr.jrds.SmiExtensions.types.Index;
 import fr.jrds.SmiExtensions.types.Size;
 
 public class ObjectInfos {
+    private static final LogAdapter logger = LogAdapter.getLogger(Index.class);
+
     enum Attribute {
         OID,
         NAME,
@@ -22,11 +33,38 @@ public class ObjectInfos {
         TYPE,
     }
 
+    static final private byte TAG1 = (byte) 0x9f;
+    static final private byte TAG_FLOAT = (byte) 0x78;
+    static final private byte TAG_DOUBLE = (byte) 0x79;
+
     public enum SnmpType {
         Opaque {
             @Override
             protected Variable getVariable() {
                 return new org.snmp4j.smi.Opaque();
+            }
+            @Override
+            protected Object convert(Variable v) {
+                Opaque var = (Opaque) v;
+                //If not resolved, we will return the data as an array of bytes
+                Object value = var.getValue();
+                try {
+                    byte[] bytesArray = var.getValue();
+                    ByteBuffer bais = ByteBuffer.wrap(bytesArray);
+                    BERInputStream beris = new BERInputStream(bais);
+                    byte t1 = bais.get();
+                    byte t2 = bais.get();
+                    int l = BER.decodeLength(beris);
+                    if(t1 == TAG1) {
+                        if(t2 == TAG_FLOAT && l == 4)
+                            value = new Float(bais.getFloat());
+                        else if(t2 == TAG_DOUBLE && l == 8)
+                            value = new Double(bais.getDouble());
+                    }
+                } catch (IOException e) {
+                    logger.error(var.toString());
+                }
+                return value;
             }
         },
         EnumVal {
@@ -34,11 +72,30 @@ public class ObjectInfos {
             protected Variable getVariable() {
                 return new org.snmp4j.smi.Integer32();
             }
+            @Override
+            protected Object convert(Variable v) {
+                return v.toInt();
+            }
         },
         String {
             @Override
             protected Variable getVariable() {
                 return new org.snmp4j.smi.OctetString();
+            }
+            @Override
+            protected Object convert(Variable v) {
+                OctetString octetVar = (OctetString)v;
+                //It might be a C string, try to remove the last 0;
+                //But only if the new string is printable
+                int length = octetVar.length();
+                if(length > 1 && octetVar.get(length - 1) == 0) {
+                    OctetString newVar = octetVar.substring(0, length - 1);
+                    if(newVar.isPrintable()) {
+                        v = newVar;
+                        logger.debug("Convertion an octet stream from %s to %s", octetVar, v);
+                    }
+                }
+                return v.toString();
             }
         },
         Unsigned {
@@ -46,11 +103,19 @@ public class ObjectInfos {
             protected Variable getVariable() {
                 return new org.snmp4j.smi.UnsignedInteger32();
             }
+            @Override
+            protected Object convert(Variable v) {
+                return v.toLong();
+            }
         },
         Unsigned32 {
             @Override
             protected Variable getVariable() {
                 return new org.snmp4j.smi.UnsignedInteger32();
+            }
+            @Override
+            protected Object convert(Variable v) {
+                return v.toLong();
             }
         },
         BitString {
@@ -59,11 +124,19 @@ public class ObjectInfos {
             protected Variable getVariable() {
                 return new org.snmp4j.smi.BitString();
             }
+            @Override
+            protected Object convert(Variable v) {
+                return v.toLong();
+            }
         },
         IpAddr {
             @Override
             protected Variable getVariable() {
                 return new org.snmp4j.smi.IpAddress();
+            }
+            @Override
+            protected Object convert(Variable v) {
+                return ((IpAddress)v).getInetAddress();
             }
         },
         NetAddr {
@@ -71,11 +144,19 @@ public class ObjectInfos {
             protected Variable getVariable() {
                 return new org.snmp4j.smi.IpAddress();
             }
+            @Override
+            protected Object convert(Variable v) {
+                return ((IpAddress)v).getInetAddress();
+            }
         },
         ObjID {
             @Override
             protected Variable getVariable() {
                 return new org.snmp4j.smi.OID();
+            }
+            @Override
+            protected Object convert(Variable v) {
+                return v;
             }
         },
         INTEGER {
@@ -83,11 +164,19 @@ public class ObjectInfos {
             protected Variable getVariable() {
                 return new org.snmp4j.smi.Integer32();
             }
+            @Override
+            protected Object convert(Variable v) {
+                return v.toInt();
+            }
         },
         Integer32 {
             @Override
             protected Variable getVariable() {
                 return new org.snmp4j.smi.Integer32();
+            }
+            @Override
+            protected Object convert(Variable v) {
+                return v.toInt();
             }
         },
         Counter {
@@ -95,11 +184,19 @@ public class ObjectInfos {
             protected Variable getVariable() {
                 return new org.snmp4j.smi.Counter32();
             }
+            @Override
+            protected Object convert(Variable v) {
+                return v.toInt();
+            }
         },
         Counter64 {
             @Override
             protected Variable getVariable() {
                 return new org.snmp4j.smi.Counter64();
+            }
+            @Override
+            protected Object convert(Variable v) {
+                return v.toLong();
             }
         },
         Gauge {
@@ -107,20 +204,29 @@ public class ObjectInfos {
             protected Variable getVariable() {
                 return new org.snmp4j.smi.Gauge32();
             }
+            @Override
+            protected Object convert(Variable v) {
+                return v.toInt();
+            }
         },
         TimeTicks {
             @Override
             protected Variable getVariable() {
                 return new org.snmp4j.smi.TimeTicks();
             }
+            @Override
+            protected Object convert(Variable v) {
+                return new Double(1.0 * ((TimeTicks)v).toMilliseconds() / 1000.0);
+            }
         },
         ;
         protected abstract Variable getVariable();
-        public Variable make(int[] in){
+        protected abstract Object convert(Variable v);
+        public Object make(int[] in){
             Variable v = getVariable();
             OID oid = new OID(in);
             v.fromSubIndex(oid, true);
-            return v;
+            return convert(v);
         };
     }
 

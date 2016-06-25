@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.log.LogLevel;
 import org.snmp4j.smi.OID;
-import org.snmp4j.smi.Variable;
 
 import fr.jrds.SmiExtensions.log.LogAdapter;
 import fr.jrds.SmiExtensions.utils.LogUtils;
@@ -28,7 +27,7 @@ public class IndexTest {
     }
 
     public void check(OID trap, String expected) {
-        Variable[] parsed = resolver.parseIndexOID(trap.getValue());
+        Object[] parsed = resolver.parseIndexOID(trap.getValue());
         //System.out.println(Arrays.toString(parsed));
         logger.warn("%s %s", trap, parsed);
         Assert.assertEquals(expected, Arrays.toString(parsed));
@@ -46,14 +45,14 @@ public class IndexTest {
     public void testLldp() {
         OID trap = new OID(resolver.getFromName("lldpRemPortDesc"));
         trap.append("38400.3.1");
-        check(trap, "[lldpRemPortDesc, 0:06:24.00, 3, 1]");
+        check(trap, "[lldpRemPortDesc, 384.0, 3, 1]");
     }
 
     @Test
     public void fromFAQ() {
         OID vacmAccessContextMatch = new OID("1.3.6.1.6.3.16.1.4.1.4.7.118.51.103.114.111.117.112.0.3.1");
         System.out.println(vacmAccessContextMatch.toString());
-        
+
         Assert.assertEquals("vacmAccessContextMatch[v3group][][3][noAuthNoPriv(1)]", vacmAccessContextMatch.toString());
     }
 
