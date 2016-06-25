@@ -1,4 +1,4 @@
-package fr.jrds.SmiExtensions;
+package fr.jrds.SmiExtensions.objects;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -14,15 +14,19 @@ import org.snmp4j.smi.Opaque;
 import org.snmp4j.smi.TimeTicks;
 import org.snmp4j.smi.Variable;
 
+import fr.jrds.SmiExtensions.MibTree;
 import fr.jrds.SmiExtensions.log.LogAdapter;
-import fr.jrds.SmiExtensions.types.EnumVal;
-import fr.jrds.SmiExtensions.types.Index;
-import fr.jrds.SmiExtensions.types.Size;
 
+/**
+ * 
+ * @author Fabrice Bacchella
+ *
+ */
 public class ObjectInfos {
+
     private static final LogAdapter logger = LogAdapter.getLogger(Index.class);
 
-    enum Attribute {
+    public enum Attribute {
         OID,
         NAME,
         INDEX,
@@ -230,26 +234,27 @@ public class ObjectInfos {
         };
     }
 
-    public final int[] oidElements;
-    public final String name;
-    public final Index index;
-    public final EnumVal values;
-    public final String textcont;
-    public final Size size;
-    public final String range;
-    public final SnmpType type;
-    public ObjectInfos(Map<Attribute, Object> attr) {
-        oidElements = (int[]) attr.get(Attribute.OID);
-        name = (String) attr.get(Attribute.NAME);
-        index = (Index) attr.get(Attribute.INDEX);
-        values = (EnumVal) attr.get(Attribute.VALUES);
-        textcont = (String) attr.get(Attribute.TEXTCONT);
-        size = (Size) attr.get(Attribute.SIZE);
-        range = (String) attr.get(Attribute.RANGE);
-        type = (SnmpType) attr.get(Attribute.TYPE);
+    final int[] oidElements;
+    final String name;
+    final Index index;
+    final EnumVal values;
+    final String textcont;
+    final Size size;
+    final String range;
+    final SnmpType type;
+
+    public ObjectInfos(MibTree tree, Map<Attribute, String> attr) {
+        oidElements = attr.containsKey(Attribute.OID) ? Arrays.stream(attr.get(Attribute.OID).split("\\.")).mapToInt(i -> Integer.parseInt(i)).toArray() : null;
+        name = attr.get(Attribute.NAME);
+        index = attr.containsKey(Attribute.INDEX) ? new Index(tree, attr.get(Attribute.INDEX)) : null;
+        values = attr.containsKey(Attribute.VALUES) ? new EnumVal(attr.get(Attribute.VALUES)) : null;
+        textcont = attr.get(Attribute.TEXTCONT);
+        size = attr.containsKey(Attribute.SIZE) ? new Size(attr.get(Attribute.SIZE)) : null;
+        range = attr.get(Attribute.RANGE);
+        type = attr.containsKey(Attribute.TYPE) ? SnmpType.valueOf(attr.get(Attribute.TYPE)) : null;
     }
 
-    ObjectInfos(int[] oidElements, String name) {
+    public ObjectInfos(int[] oidElements, String name) {
         this.oidElements = oidElements;
         this.name = name;
         index = null;
@@ -288,4 +293,27 @@ public class ObjectInfos {
         return name.equals(other.name) && Arrays.equals(oidElements, other.oidElements);
     }
 
+    public Parsed extract(int[] oidElements) {
+        return size != null ? size.extract(oidElements) : null;
+    }
+
+    public Object[] resolve(int[] oid) {
+        return index != null ? index.resolve(oid) : null;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public boolean isIndex() {
+        return index != null;
+    }
+    
+    public int[] getOidElements() {
+        return oidElements != null ? Arrays.copyOf(oidElements, oidElements.length) : null;
+    }
+    
+    public boolean oidEquals(int[] other) {
+        return other != null && Arrays.equals(oidElements, other);
+    }
 }

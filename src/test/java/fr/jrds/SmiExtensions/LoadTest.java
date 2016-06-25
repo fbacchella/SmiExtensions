@@ -20,15 +20,15 @@ public class LoadTest {
     @Test
     public void testDefaultLoad() {
         MibTree resolver = new MibTree();
-        Assert.assertEquals("std", resolver.getInfos("std").name);
-        Assert.assertEquals("ipOutDiscards", resolver.getInfos("ipOutDiscards").name);
+        Assert.assertEquals("std", resolver.getInfos("std").getName());
+        Assert.assertEquals("ipOutDiscards", resolver.getInfos("ipOutDiscards").getName());
     }
 
     @Test
     public void testEmptyLoad() throws IOException {
         MibTree resolver = new MibTree(true);
         resolver.load(getClass().getClassLoader().getResourceAsStream("custommibs.txt"));
-        Assert.assertEquals("testprivate", resolver.getInfos("testprivate").name);
+        Assert.assertEquals("testprivate", resolver.getInfos("testprivate").getName());
     }
 
     @Test
@@ -36,17 +36,17 @@ public class LoadTest {
         MibTree resolver = new MibTree(true);
         resolver.load(getClass().getClassLoader().getResourceAsStream("smallmibs.txt"));
         resolver.load(getClass().getClassLoader().getResourceAsStream("custommibs.txt"));
-        Assert.assertEquals("testprivate", resolver.getInfos("testprivate").name);
+        Assert.assertEquals("testprivate", resolver.getInfos("testprivate").getName());
     }
 
     @Test
     public void testCustomLoad() throws IOException {
         MibTree resolver = new MibTree(false);
         resolver.load(getClass().getClassLoader().getResourceAsStream("custommibs.txt"));
-        Assert.assertEquals("std", resolver.getInfos("std").name);
-        Assert.assertEquals("ipOutDiscards", resolver.getInfos("ipOutDiscards").name);
-        Assert.assertEquals("dot1xPaeConformance", resolver.getInfos("dot1xPaeConformance").name);
-        Assert.assertEquals("testprivate", resolver.getInfos("testprivate").name);
+        Assert.assertEquals("std", resolver.getInfos("std").getName());
+        Assert.assertEquals("ipOutDiscards", resolver.getInfos("ipOutDiscards").getName());
+        Assert.assertEquals("dot1xPaeConformance", resolver.getInfos("dot1xPaeConformance").getName());
+        Assert.assertEquals("testprivate", resolver.getInfos("testprivate").getName());
     }
 
 }

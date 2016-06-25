@@ -1,11 +1,12 @@
-package fr.jrds.SmiExtensions.types;
+package fr.jrds.SmiExtensions.objects;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class EnumVal {
+class EnumVal {
+
     private final Map<Integer, String> values= new HashMap<>();
     private final static Pattern p = Pattern.compile("(.*?)\\((\\d+)\\)(?:, )?");
 

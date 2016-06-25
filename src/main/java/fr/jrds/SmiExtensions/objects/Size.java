@@ -1,4 +1,4 @@
-package fr.jrds.SmiExtensions.types;
+package fr.jrds.SmiExtensions.objects;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,11 +9,6 @@ import java.util.regex.Pattern;
 import fr.jrds.SmiExtensions.log.LogAdapter;
 
 public class Size {
-
-    public static class Parsing {
-        int[] content = null;
-        int[] next = null;
-    }
 
     LogAdapter logger = LogAdapter.getLogger(Size.class);
 
@@ -41,7 +36,7 @@ public class Size {
     private final List<Range> ranges = new ArrayList<>();
     private boolean variableSize = false;
 
-    public Size(String sizes) {
+    Size(String sizes) {
         Matcher m = p.matcher(sizes);
         if (! parse(m)) {
             logger.error("invalid size line" , m.group("noise"));
@@ -73,8 +68,8 @@ public class Size {
         return false;
     }
 
-    public Parsing extract(int[] oidElements) {
-        Parsing tryExtract = new Parsing();
+    Parsed extract(int[] oidElements) {
+        Parsed tryExtract = new Parsed();
         for(Range i: ranges) {
             if(variableSize) {
                 int size = oidElements[0];

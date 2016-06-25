@@ -1,4 +1,4 @@
-package fr.jrds.SmiExtensions.types;
+package fr.jrds.SmiExtensions.objects;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,16 +7,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import fr.jrds.SmiExtensions.MibTree;
-import fr.jrds.SmiExtensions.ObjectInfos;
 import fr.jrds.SmiExtensions.log.LogAdapter;
 
-public class Index {
+class Index {
 
     private static final LogAdapter logger = LogAdapter.getLogger(Index.class);
 
     private final List<String> indexes = new ArrayList<>();
     private final static Pattern p = Pattern.compile("([^,]+)(?:, )?");
     private final MibTree smi;
+    
     public Index(MibTree smi, String indexes) {
         this.smi = smi;
         Matcher m = p.matcher(indexes);
@@ -39,11 +39,11 @@ public class Index {
                 logger.error("index not found: %s", i);
                 break;
             }
-            Size.Parsing parsed;
+            Parsed parsed;
             if(oi.size != null) {
                 parsed = oi.size.extract(oidParsed);
             } else {
-                parsed = new Size.Parsing();
+                parsed = new Parsed();
                 parsed.content = Arrays.copyOf(oidParsed, 1);
                 if(oidParsed.length > 1) {
                     parsed.next = Arrays.copyOfRange(oidParsed, 1, oidParsed.length);

@@ -14,16 +14,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 
-import fr.jrds.SmiExtensions.ObjectInfos.Attribute;
-import fr.jrds.SmiExtensions.ObjectInfos.SnmpType;
 import fr.jrds.SmiExtensions.log.LogAdapter;
-import fr.jrds.SmiExtensions.types.EnumVal;
-import fr.jrds.SmiExtensions.types.Index;
-import fr.jrds.SmiExtensions.types.Size;
+import fr.jrds.SmiExtensions.objects.ObjectInfos;
+import fr.jrds.SmiExtensions.objects.ObjectInfos.Attribute;
 
 public class MibTree {
 
@@ -48,10 +46,17 @@ public class MibTree {
 
     private final OidTreeNode top = new OidTreeNode();
 
+    /**
+     * Build a MIB tree, using default content
+     */
     public MibTree() {
         this(false);
     }
 
+    /**
+     * Build a MIB tree, 
+     * @param empty if set to true, don't load the default content
+     */
     public MibTree(boolean empty) {
         if(! empty) {
             InputStream is = getClass().getClassLoader().getResourceAsStream("mibstree.txt");
@@ -71,9 +76,9 @@ public class MibTree {
         BufferedReader linereader = new BufferedReader(reader);
         int linenumber = 0;
         int olddepth = -1;
-        List<Integer> oidBuilder = new ArrayList<>();
+        List<String> oidBuilder = new ArrayList<>();
         String line;
-        Map<Attribute, Object> current = new HashMap<>();
+        Map<Attribute, String> current = new HashMap<>();
         while((line = linereader.readLine()) != null) {
             linenumber++;
             Matcher m = p.matcher(line);
@@ -91,7 +96,7 @@ public class MibTree {
                     } else {
                         objectName = m.group("typeName");
                         try {
-                            current.put(Attribute.TYPE, SnmpType.valueOf(m.group("type")) );
+                            current.put(Attribute.TYPE, m.group("type") );
                         } catch (IllegalArgumentException e) {
                             logger.error("invalid type at line %s: '%s'",linenumber, m.group("type"));
                         }
@@ -100,30 +105,28 @@ public class MibTree {
                     }
                     int depth = depthGroupContent.length() / 3;
                     if(depth > olddepth) {
-                        oidBuilder.add(Integer.parseInt(oidGroupContent));
+                        oidBuilder.add(oidGroupContent);
                     } else if (depth == olddepth){
-                        oidBuilder.set(depth, Integer.parseInt(oidGroupContent));
+                        oidBuilder.set(depth, oidGroupContent);
                     } else if(depth != 0 && depth < olddepth) {
                         oidBuilder.subList(depth + 1, oidBuilder.size()).clear();
-                        oidBuilder.set(depth, Integer.parseInt(oidGroupContent));
+                        oidBuilder.set(depth, oidGroupContent);
                     }
-                    int[] oidints = new int[depth + 1];
-                    Arrays.setAll(oidints, i -> oidBuilder.get(i));
                     current.put(Attribute.NAME, objectName);
-                    current.put(Attribute.OID, oidints);
+                    current.put(Attribute.OID, oidBuilder.stream().collect(Collectors.joining(".")));
                     olddepth = depth;
                 }
                 else if (m.group("indexes") != null) {
-                    current.put(Attribute.INDEX, new Index(this, m.group("indexes")));
+                    current.put(Attribute.INDEX, m.group("indexes"));
                 }
                 else if (m.group("values") != null) {
-                    current.put(Attribute.VALUES, new EnumVal(m.group("values")));
+                    current.put(Attribute.VALUES, m.group("values"));
                 }
                 else if (m.group("textConv") != null) {
                     current.put(Attribute.TEXTCONT, m.group("textConv"));
                 }
                 else if (m.group("size") != null) {
-                    current.put(Attribute.SIZE, new Size(m.group("size")));
+                    current.put(Attribute.SIZE, m.group("size"));
                 }
                 else if (m.group("range") != null) {
                     current.put(Attribute.RANGE, m.group("range"));
@@ -135,21 +138,24 @@ public class MibTree {
         saveObject(current);
     }
 
-    private void saveObject(Map<Attribute, Object> current) {
+    private void saveObject(Map<Attribute, String> current) {
         if(current.size() > 0) {
-            ObjectInfos oi = new ObjectInfos(current);
-            if(oi.oidElements != null) {
-                if(oi.name != null) {
-                    top.add(oi);
-                    if(_names.put(oi.name, oi) != null) {
-                        logger.warn("duplicate name: %s", oi.name);
-                    };
-                }
+            ObjectInfos oi = new ObjectInfos(this, current);
+            if(oi.getOidElements() != null && oi.getName() != null) {
+                top.add(oi);
+                if(_names.put(oi.getName(), oi) != null) {
+                    logger.warn("duplicate name: %s", oi.getName());
+                };
             }
             current.clear();
         }
     }
 
+    /**
+     * Parse an OID that contains an array's index and resolve it.
+     * @param oid
+     * @return a array of index part, starting with the entry name
+     */
     public Object[] parseIndexOID(int[] oid) {
         OidTreeNode found = top.search(oid);
         if(found == null) {
@@ -157,13 +163,13 @@ public class MibTree {
         }
         List<Object> parts = new ArrayList<Object>();
         int[] foundOID = found.getElements();
-        parts.add(new OctetString(found.getObject().name));
+        parts.add(new OctetString(found.getObject().getName()));
         //The full path was not found, try to resolve the left other
         if(foundOID.length < oid.length ) {
             ObjectInfos parent = top.find(Arrays.copyOf(foundOID, foundOID.length -1 )).getObject();
-            if(parent != null && parent.index != null) {
+            if(parent != null && parent.isIndex()) {
                 int[] index = Arrays.copyOfRange(oid, foundOID.length, oid.length);
-                Arrays.stream(parent.index.resolve(index)).forEach(i -> parts.add(i));
+                Arrays.stream(parent.resolve(index)).forEach(i -> parts.add(i));
             }
         }
         return parts.toArray(new Object[parts.size()]);
@@ -189,8 +195,7 @@ public class MibTree {
 
     public int[] getFromName(String oidString) {
         if(names.containsKey(oidString)) {
-            int[] oidElements = names.get(oidString).oidElements;
-            return Arrays.copyOf(oidElements, oidElements.length);
+            return names.get(oidString).getOidElements();
         } else {
             return null;
         }

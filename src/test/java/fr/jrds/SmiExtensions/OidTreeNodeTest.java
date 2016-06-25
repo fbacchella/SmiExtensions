@@ -7,6 +7,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.snmp4j.log.LogLevel;
 
+import fr.jrds.SmiExtensions.objects.ObjectInfos;
 import fr.jrds.SmiExtensions.utils.LogUtils;
 
 public class OidTreeNodeTest {

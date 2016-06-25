@@ -6,7 +6,9 @@ import java.util.Map;
 
 import org.snmp4j.smi.OID;
 
-public class OidTreeNode {
+import fr.jrds.SmiExtensions.objects.ObjectInfos;
+
+class OidTreeNode {
 
     private final ObjectInfos object;
     private final Map<Integer, OidTreeNode> childs = new HashMap<Integer, OidTreeNode>();
@@ -24,11 +26,12 @@ public class OidTreeNode {
     }
 
     public void add(ObjectInfos object) {
-        if(find(object.oidElements) != null) {
+        int[] oidElements = object.getOidElements();
+        if(find(oidElements) != null) {
             //already exists, don't add
             return;
         }
-        int[] elements = object.oidElements;
+        int[] elements = oidElements;
         int[] oidParent = Arrays.copyOf(elements, elements.length - 1);
         //Adding a first level child
         if(oidParent.length == 0) {
@@ -53,7 +56,7 @@ public class OidTreeNode {
 
     public OidTreeNode find(int[] oid) {
         OidTreeNode found = search(oid, true);
-        if(found!= null && Arrays.equals(oid, found.object.oidElements)) {
+        if(found!= null && found.object.oidEquals(oid)) {
             return found;
         } else {
             return null;
@@ -83,15 +86,15 @@ public class OidTreeNode {
 
     @Override
     public String toString() {
-        return Utils.dottedNotation(object.oidElements) + ":" + object.name;
+        return Utils.dottedNotation(object.getOidElements()) + ":" + object.getName();
     }
 
     public int[] getElements() {
-        return Arrays.copyOf(object.oidElements, object.oidElements.length);
+        return object.getOidElements();
     }
 
     public OID getOID() {
-        return new OID(object.oidElements);
+        return new OID(object.getOidElements());
     }
 
 }

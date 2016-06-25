@@ -25,7 +25,7 @@ public class Snmp4jTest {
         
         MibTree resolver = new MibTree();
         resolver.load(getClass().getClassLoader().getResourceAsStream("custommibs.txt"));
-        Assert.assertEquals("dot1xPaeConformance", resolver.getInfos("dot1xPaeConformance").name);
+        Assert.assertEquals("dot1xPaeConformance", resolver.getInfos("dot1xPaeConformance").getName());
 
         SNMP4JSettings.setOIDTextFormat(new OIDFormatter(resolver));
         
