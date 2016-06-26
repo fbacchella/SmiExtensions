@@ -255,7 +255,7 @@ public class ObjectInfos {
     }
 
     public ObjectInfos(int[] oidElements, String name) {
-        this.oidElements = oidElements;
+        this.oidElements = Arrays.copyOf(oidElements, oidElements.length);
         this.name = name;
         index = null;
         values = null;
@@ -281,18 +281,6 @@ public class ObjectInfos {
         return buffer.toString();
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if ( !(obj instanceof ObjectInfos)) {
-            return false;
-        }
-        ObjectInfos other = (ObjectInfos) obj;
-        return name.equals(other.name) && Arrays.equals(oidElements, other.oidElements);
-    }
-
     public Parsed extract(int[] oidElements) {
         return size != null ? size.extract(oidElements) : null;
     }
@@ -308,12 +296,34 @@ public class ObjectInfos {
     public boolean isIndex() {
         return index != null;
     }
-    
+
     public int[] getOidElements() {
         return oidElements != null ? Arrays.copyOf(oidElements, oidElements.length) : null;
     }
-    
+
     public boolean oidEquals(int[] other) {
         return other != null && Arrays.equals(oidElements, other);
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + Arrays.hashCode(oidElements);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if ( !(obj instanceof ObjectInfos)) {
+            return false;
+        }
+        ObjectInfos other = (ObjectInfos) obj;
+        return name.equals(other.name) && Arrays.equals(oidElements, other.oidElements);
+    }
+
 }

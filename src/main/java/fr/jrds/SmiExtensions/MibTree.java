@@ -17,7 +17,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.snmp4j.smi.OID;
-import org.snmp4j.smi.OctetString;
 
 import fr.jrds.SmiExtensions.log.LogAdapter;
 import fr.jrds.SmiExtensions.objects.ObjectInfos;
@@ -69,7 +68,7 @@ public class MibTree {
     }
 
     public void load(InputStream is) throws IOException {
-        load(new InputStreamReader(is));
+        load(new InputStreamReader(is, Charset.defaultCharset()));
     }
 
     public void load(Reader reader) throws IOException {
@@ -174,7 +173,7 @@ public class MibTree {
         }
         return parts.toArray(new Object[parts.size()]);
     }
-    
+
     /**
      * Parse an OID that contains an array's index and resolve it.
      * @param oid The OID to parse
