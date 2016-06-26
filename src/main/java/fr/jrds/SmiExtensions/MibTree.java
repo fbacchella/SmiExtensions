@@ -154,16 +154,16 @@ public class MibTree {
     /**
      * Parse an OID that contains an array's index and resolve it.
      * @param oid
-     * @return a array of index part, starting with the entry name
+     * @return a array of index parts, starting with the entry name
      */
-    public Object[] parseIndexOID(int[] oid) {
+    Object[] parseIndexOID(int[] oid) {
         OidTreeNode found = top.search(oid);
         if(found == null) {
             return new Object[] {new OID(oid)};
         }
         List<Object> parts = new ArrayList<Object>();
         int[] foundOID = found.getElements();
-        parts.add(new OctetString(found.getObject().getName()));
+        parts.add(found.getObject().getName());
         //The full path was not found, try to resolve the left other
         if(foundOID.length < oid.length ) {
             ObjectInfos parent = top.find(Arrays.copyOf(foundOID, foundOID.length -1 )).getObject();
@@ -173,6 +173,15 @@ public class MibTree {
             }
         }
         return parts.toArray(new Object[parts.size()]);
+    }
+    
+    /**
+     * Parse an OID that contains an array's index and resolve it.
+     * @param oid The OID to parse
+     * @return a array of index parts, starting with the entry name
+     */
+    public Object[] parseIndexOID(OID oid) {
+        return parseIndexOID(oid.getValue());
     }
 
     public ObjectInfos getInfos(String oidString) {
