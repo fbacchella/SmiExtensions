@@ -15,6 +15,7 @@ import org.snmp4j.smi.TimeTicks;
 import org.snmp4j.smi.Variable;
 
 import fr.jrds.SmiExtensions.MibTree;
+import fr.jrds.SmiExtensions.Utils;
 import fr.jrds.SmiExtensions.log.LogAdapter;
 
 /**
@@ -190,7 +191,7 @@ public class ObjectInfos {
             }
             @Override
             protected Object convert(Variable v) {
-                return v.toInt();
+                return v.toLong();
             }
         },
         Counter64 {
@@ -200,7 +201,7 @@ public class ObjectInfos {
             }
             @Override
             protected Object convert(Variable v) {
-                return v.toLong();
+                return Utils.getUnsigned(v.toLong());
             }
         },
         Gauge {
@@ -210,7 +211,7 @@ public class ObjectInfos {
             }
             @Override
             protected Object convert(Variable v) {
-                return v.toInt();
+                return v.toLong();
             }
         },
         TimeTicks {
