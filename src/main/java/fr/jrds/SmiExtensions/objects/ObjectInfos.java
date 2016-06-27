@@ -23,7 +23,7 @@ import fr.jrds.SmiExtensions.log.LogAdapter;
  * @author Fabrice Bacchella
  *
  */
-public class ObjectInfos {
+public class ObjectInfos implements Comparable<OID>{
 
     private static final LogAdapter logger = LogAdapter.getLogger(Index.class);
 
@@ -325,6 +325,36 @@ public class ObjectInfos {
         }
         ObjectInfos other = (ObjectInfos) obj;
         return name.equals(other.name) && Arrays.equals(oidElements, other.oidElements);
+    }
+
+    /**
+     * Compare the found OID to another OID.
+     * Its semantics is similar to java.lang.Comparable#compareTo(java.lang.Object) and org.snmp4j.smi.OID#compareTo(org.snmp4j.smi.Variable), but with added signification.
+     * The absolute number is the position of the first different element. Counting start from 1 because 0 means equality. So it can be
+     * higher than the last element of shortest OID.
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     * @see org.snmp4j.smi.OID#compareTo(org.snmp4j.smi.Variable)
+     * 
+     * @param oid - OID to compare to.
+     * @return a negative integer, zero, or a positive integer as common path from OID and the compare OID is shortest, equals or longer than the given OID.
+     */
+    @Override
+    public int compareTo(OID oid) {
+        if(oid == null) {
+            throw new NullPointerException("empty OID");
+        }
+        int i;
+        int end = Math.max(oidElements.length, oid.size());
+        for(i = 0; i < end; i++) {
+            if(i >= oid.size()) {
+                return i +1 ;
+            } else if(i >= oidElements.length) {
+                return -i - 1;
+            } else if (oidElements[i] != oid.get(i)) {
+                return i + 1;
+            }
+        }
+        return 0;
     }
 
 }
