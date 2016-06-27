@@ -254,7 +254,7 @@ public class MibTree {
     }
     
     public ObjectInfos getParent(int[] oidElements) {
-        OidTreeNode node = top.find(Arrays.copyOf(oidElements, oidElements.length - 1));
+        OidTreeNode node = top.search(Arrays.copyOf(oidElements, oidElements.length - 1));
         if(node != null) {
             return node.getObject();
         } else {
