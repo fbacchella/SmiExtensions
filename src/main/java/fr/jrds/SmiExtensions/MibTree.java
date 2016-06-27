@@ -183,6 +183,37 @@ public class MibTree {
         return parseIndexOID(oid.getValue());
     }
 
+    public ObjectInfos searchInfos(String oidString) {
+        if(names.containsKey(oidString)) {
+            return names.get(oidString);
+        } else {
+            try {
+                int [] oidElements = Arrays.stream(oidString.split("\\.")).mapToInt(i -> Integer.parseInt(i)).toArray();
+                OidTreeNode node = top.search(oidElements);
+                if(node != null) {
+                    return node.getObject();
+                }
+            } catch (NumberFormatException e) {
+                //parsing failed, was not an oid
+            }
+        }
+        //Nothing works, give up
+        return null;
+    }
+    
+    public ObjectInfos searchInfos(int[] oidElements) {
+        OidTreeNode node = top.search(oidElements);
+        if(node != null) {
+            return node.getObject();
+        } else {
+            return null;
+        }
+    }
+
+    public ObjectInfos searchInfos(OID oid) {
+        return searchInfos(oid.getValue());
+    }
+
     public ObjectInfos getInfos(String oidString) {
         if(names.containsKey(oidString)) {
             return names.get(oidString);
