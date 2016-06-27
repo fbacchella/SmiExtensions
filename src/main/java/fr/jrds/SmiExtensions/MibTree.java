@@ -24,7 +24,7 @@ import fr.jrds.SmiExtensions.objects.ObjectInfos.Attribute;
 
 public class MibTree {
 
-    LogAdapter logger = LogAdapter.getLogger(MibTree.class);
+    private final static LogAdapter logger = LogAdapter.getLogger(MibTree.class);
 
     private final static Pattern p;
     static {
@@ -199,6 +199,19 @@ public class MibTree {
         }
         //Nothing works, give up
         return null;
+    }
+    
+    public ObjectInfos getInfos(int[] oidElements) {
+        OidTreeNode node = top.find(oidElements);
+        if(node != null) {
+            return node.getObject();
+        } else {
+            return null;
+        }
+    }
+
+    public ObjectInfos getInfos(OID oid) {
+        return getInfos(oid.getValue());
     }
 
     public int[] getFromName(String oidString) {

@@ -298,6 +298,10 @@ public class ObjectInfos implements Comparable<OID>{
         return index != null;
     }
 
+    public OID getOID() {
+        return oidElements != null ? new OID(oidElements) : null;
+    }
+
     public int[] getOidElements() {
         return oidElements != null ? Arrays.copyOf(oidElements, oidElements.length) : null;
     }
