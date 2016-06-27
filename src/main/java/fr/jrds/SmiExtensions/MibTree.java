@@ -252,4 +252,17 @@ public class MibTree {
             return null;
         }
     }
+    
+    public ObjectInfos getParent(int[] oidElements) {
+        OidTreeNode node = top.find(Arrays.copyOf(oidElements, oidElements.length - 1));
+        if(node != null) {
+            return node.getObject();
+        } else {
+            return null;
+        }
+    }
+
+    public ObjectInfos getParent(OID oid) {
+        return getParent(oid.getValue());
+    }
 }
