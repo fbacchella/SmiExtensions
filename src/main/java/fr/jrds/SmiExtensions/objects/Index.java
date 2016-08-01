@@ -59,6 +59,9 @@ class Index {
             }
             indexesValues.add(v);
             oidParsed = parsed.next;
+            if (oidParsed == null) {
+                break;
+            }
         }
         return indexesValues.toArray(new Object[indexesValues.size()]);
     }
