@@ -30,7 +30,7 @@ public class MibTree {
     static {
         String empty = "(?: |\\|)";
         String line1 = String.format("%s*", empty);
-        String line2 = String.format("(?<depth>%s*)\\+--(?<object>[A-Za-z0-9-#]+)\\((?<oid>\\d+)\\).*", empty);
+        String line2 = String.format("(?<depth>%s*)\\+--(?<object>[A-Za-z0-9-]+|anonymous#[0-9]+)(?<trap>#)?\\((?<oid>\\d+)\\).*", empty);
         String line3 = String.format("%s*Index: (?<indexes>.+)", empty);
         String line4 = String.format("%s*Values: (?<values>.+)", empty);
         String line5 = String.format("%s*Textual Convention: (?<textConv>.+)", empty);
@@ -44,6 +44,8 @@ public class MibTree {
     public final Map<String, ObjectInfos> names = Collections.unmodifiableMap(_names);
 
     private final OidTreeNode top = new OidTreeNode();
+
+    private final Map<OID, Map<Integer, String>> traps = new HashMap<>();
 
     /**
      * Build a MIB tree, using default content
@@ -78,13 +80,14 @@ public class MibTree {
         List<String> oidBuilder = new ArrayList<>();
         String line;
         Map<Attribute, String> current = new HashMap<>();
+        boolean inTrapList = false;
         while((line = linereader.readLine()) != null) {
             linenumber++;
             Matcher m = p.matcher(line);
             if(m.matches()) {
                 if(m.group("object") != null || m.group("type") != null) {
                     // Save the last object
-                    saveObject(current);
+                    saveObject(current, inTrapList);
                     String depthGroupContent;
                     String oidGroupContent;
                     String objectName;
@@ -110,10 +113,17 @@ public class MibTree {
                     } else if(depth != 0 && depth < olddepth) {
                         oidBuilder.subList(depth + 1, oidBuilder.size()).clear();
                         oidBuilder.set(depth, oidGroupContent);
+                        inTrapList = false;
                     }
                     current.put(Attribute.NAME, objectName);
                     current.put(Attribute.OID, oidBuilder.stream().collect(Collectors.joining(".")));
                     olddepth = depth;
+                    // A set of v1 trap is always under a node labeled #(0)
+                    if (m.group("trap") != null && "#".equals(m.group("trap")) && "0".equals(m.group("oid"))) {
+                        inTrapList = true;
+                        // Drop the current object, it's just a trap specific wrapper, useless
+                        current.clear();;
+                    }
                 }
                 else if (m.group("indexes") != null) {
                     current.put(Attribute.INDEX, m.group("indexes"));
@@ -134,17 +144,27 @@ public class MibTree {
                 logger.error("invalid line %s: '%s'",linenumber, line);
             }
         }
-        saveObject(current);
+        // Save the last iterated object
+        saveObject(current, inTrapList);
     }
 
-    private void saveObject(Map<Attribute, String> current) {
+    private void saveObject(Map<Attribute, String> current, boolean inTrapList) {
         if(current.size() > 0) {
             ObjectInfos oi = new ObjectInfos(this, current);
-            if(oi.getOidElements() != null && oi.getName() != null) {
+            if(oi.getOidElements() != null && oi.getName() != null && ! inTrapList) {
                 top.add(oi);
                 if(_names.put(oi.getName(), oi) != null) {
                     logger.warn("duplicate name: %s", oi.getName());
                 };
+            } else {
+                OID oid = new OID(oi.getOID());
+                int specific = oid.removeLast();
+                // Remove the useless 0 in the OID
+                oid.removeLast();
+                if (! traps.containsKey(oid)) {
+                    traps.put(oid, new HashMap<>());
+                }
+                traps.get(oid).put(specific, oi.getName());
             }
             current.clear();
         }
@@ -200,7 +220,7 @@ public class MibTree {
         //Nothing works, give up
         return null;
     }
-    
+
     public ObjectInfos searchInfos(int[] oidElements) {
         OidTreeNode node = top.search(oidElements);
         if(node != null) {
@@ -231,7 +251,7 @@ public class MibTree {
         //Nothing works, give up
         return null;
     }
-    
+
     public ObjectInfos getInfos(int[] oidElements) {
         OidTreeNode node = top.find(oidElements);
         if(node != null) {
@@ -252,7 +272,7 @@ public class MibTree {
             return null;
         }
     }
-    
+
     public ObjectInfos getParent(int[] oidElements) {
         OidTreeNode node = top.search(Arrays.copyOf(oidElements, oidElements.length - 1));
         if(node != null) {
@@ -265,4 +285,15 @@ public class MibTree {
     public ObjectInfos getParent(OID oid) {
         return getParent(oid.getValue());
     }
+
+    /**
+     * Return the string value of a trap if a specific trap Id was given
+     * @param oid The enterprise OID
+     * @param specific The specific trap Id
+     * @return
+     */
+    public String resolveTrapSpecific(OID oid, int specific) {
+        return traps.getOrDefault(oid, Collections.emptyMap()).getOrDefault(specific, Integer.toString(specific));
+    }
+
 }
