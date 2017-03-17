@@ -123,6 +123,17 @@ public class ObjectInfos implements Comparable<OID>{
                 return v.toLong();
             }
         },
+        // Net-Snmp create it from LMS-COMPONENT-MIB, as an alias for UInteger32
+        UInteger {
+            @Override
+            protected Variable getVariable() {
+                return new org.snmp4j.smi.UnsignedInteger32();
+            }
+            @Override
+            protected Object convert(Variable v) {
+                return v.toLong();
+            }
+        },
         BitString {
             @SuppressWarnings("deprecation")
             @Override

@@ -34,9 +34,10 @@ public class MibTree {
         String line3 = String.format("%s*Index: (?<indexes>.+)", empty);
         String line4 = String.format("%s*Values: (?<values>.+)", empty);
         String line5 = String.format("%s*Textual Convention: (?<textConv>.+)", empty);
-        String line6 = String.format("%s*Size: (?<size>.+)", empty);
+        // Some OID miss the size
+        String line6 = String.format("%s*Size: (?<size>.+)?", empty);
         String line7 = String.format("%s*Range: (?<range>.+)", empty);
-        String line8 = String.format("(?<depthType>%s*)\\+-- (-|C)(-|R)(-|W)(-|N) (?<type>[A-Za-z0-9]+) +(?<typeName>[A-Za-z0-9]+)\\((?<oidType>\\d+)\\).*", empty);
+        String line8 = String.format("(?<depthType>%s*)\\+-- (-|C)(-|R)(-|W)(-|N) (?<type>[A-Za-z0-9]+) +(?<typeName>[A-Za-z0-9-]+)\\((?<oidType>\\d+)\\).*", empty);
         p = Pattern.compile(String.format("^(?:%s)|(?:%s)|(?:%s)|(?:%s)|(?:%s)|(?:%s)|(?:%s)|(?:%s)$", line1, line2, line3, line4, line5, line6, line7, line8));
     }
 
@@ -62,7 +63,7 @@ public class MibTree {
         if(! empty) {
             InputStream is = getClass().getClassLoader().getResourceAsStream("mibstree.txt");
             try {
-                load(new InputStreamReader(is, Charset.forName("US-ASCII")));
+                load(new InputStreamReader(is, Charset.forName("US-ASCII")), false);
             } catch (IOException e) {
                 throw new RuntimeException("impossible to load default mibstree", e);
             }
@@ -70,13 +71,14 @@ public class MibTree {
     }
 
     public void load(InputStream is) throws IOException {
-        load(new InputStreamReader(is, Charset.defaultCharset()));
+        load(new InputStreamReader(is, Charset.defaultCharset()), true);
     }
 
-    public void load(Reader reader) throws IOException {
+    public void load(Reader reader, boolean reload) throws IOException {
         BufferedReader linereader = new BufferedReader(reader);
         int linenumber = 0;
         int olddepth = -1;
+        int traplistdepth = -1;
         List<String> oidBuilder = new ArrayList<>();
         String line;
         Map<Attribute, String> current = new HashMap<>();
@@ -87,7 +89,7 @@ public class MibTree {
             if(m.matches()) {
                 if(m.group("object") != null || m.group("type") != null) {
                     // Save the last object
-                    saveObject(current, inTrapList);
+                    saveObject(current, inTrapList, reload);
                     String depthGroupContent;
                     String oidGroupContent;
                     String objectName;
@@ -106,6 +108,11 @@ public class MibTree {
                         oidGroupContent = m.group("oidType");
                     }
                     int depth = depthGroupContent.length() / 3;
+                    // Check if we reach the end of a trap list
+                    if (traplistdepth > 0 && depth <= traplistdepth) {
+                        inTrapList = false;
+                        traplistdepth = -1;
+                    }
                     if(depth > olddepth) {
                         oidBuilder.add(oidGroupContent);
                     } else if (depth == olddepth){
@@ -113,7 +120,6 @@ public class MibTree {
                     } else if(depth != 0 && depth < olddepth) {
                         oidBuilder.subList(depth + 1, oidBuilder.size()).clear();
                         oidBuilder.set(depth, oidGroupContent);
-                        inTrapList = false;
                     }
                     current.put(Attribute.NAME, objectName);
                     current.put(Attribute.OID, oidBuilder.stream().collect(Collectors.joining(".")));
@@ -121,8 +127,9 @@ public class MibTree {
                     // A set of v1 trap is always under a node labeled #(0)
                     if (m.group("trap") != null && "#".equals(m.group("trap")) && "0".equals(m.group("oid"))) {
                         inTrapList = true;
+                        traplistdepth = depth;
                         // Drop the current object, it's just a trap specific wrapper, useless
-                        current.clear();;
+                        current.clear();
                     }
                 }
                 else if (m.group("indexes") != null) {
@@ -145,15 +152,16 @@ public class MibTree {
             }
         }
         // Save the last iterated object
-        saveObject(current, inTrapList);
+        saveObject(current, inTrapList, reload);
     }
 
-    private void saveObject(Map<Attribute, String> current, boolean inTrapList) {
+    private void saveObject(Map<Attribute, String> current, boolean inTrapList, boolean reload) {
         if(current.size() > 0) {
             ObjectInfos oi = new ObjectInfos(this, current);
             if(oi.getOidElements() != null && oi.getName() != null && ! inTrapList) {
                 top.add(oi);
-                if(_names.put(oi.getName(), oi) != null) {
+                // warning about duplicate names are not sent when adding a new tree
+                if(_names.put(oi.getName(), oi) != null && ! reload) {
                     logger.warn("duplicate name: %s", oi.getName());
                 };
             } else {
