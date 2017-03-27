@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.snmp4j.asn1.BER;
 import org.snmp4j.asn1.BERInputStream;
+import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.IpAddress;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
@@ -36,11 +39,14 @@ public class ObjectInfos implements Comparable<OID>{
         SIZE,
         RANGE,
         TYPE,
+        TRAP,
     }
 
     static final private byte TAG1 = (byte) 0x9f;
     static final private byte TAG_FLOAT = (byte) 0x78;
     static final private byte TAG_DOUBLE = (byte) 0x79;
+
+    static final private Pattern VARIABLEPATTERN = Pattern.compile("(?<text>.*?)\\((?<num>\\d+)\\)");
 
     public enum SnmpType {
         Opaque {
@@ -81,6 +87,24 @@ public class ObjectInfos implements Comparable<OID>{
             protected Object convert(Variable v) {
                 return v.toInt();
             }
+            @Override
+            protected String format(ObjectInfos oi, Variable v) {
+                return java.lang.String.format("%s(%d)", oi.values.resolve(v.toInt()), v.toInt());
+            }
+            @Override
+            protected Variable parse(ObjectInfos oi, String text) {
+                Matcher m = VARIABLEPATTERN.matcher(text);
+                m.find();
+                String numval = m.group("num");
+                String textval = m.group("text");
+                if( numval != null && oi.values.resolve(Integer.parseInt(numval)) !=null) {
+                    return new Integer32(Integer.parseInt(numval));
+                } else if (textval != null && oi.values.resolve(textval) != null){
+                    return new Integer32(oi.values.resolve(textval));
+                } else {
+                    return null;
+                }
+            }
         },
         String {
             @Override
@@ -101,6 +125,14 @@ public class ObjectInfos implements Comparable<OID>{
                     }
                 }
                 return v.toString();
+            }
+            @Override
+            protected String format(ObjectInfos oi, Variable v) {
+                return v.toString();
+            }
+            @Override
+            protected Variable parse(ObjectInfos oi, String text) {
+                return OctetString.fromByteArray(text.getBytes());
             }
         },
         Unsigned {
@@ -154,6 +186,15 @@ public class ObjectInfos implements Comparable<OID>{
             protected Object convert(Variable v) {
                 return ((IpAddress)v).getInetAddress();
             }
+            @Override
+            protected String format(ObjectInfos oi, Variable v) {
+                IpAddress ip = (IpAddress) v;
+                return ip.getInetAddress().getHostName();
+            }
+            @Override
+            protected Variable parse(ObjectInfos oi, String text) {
+                return new org.snmp4j.smi.IpAddress(text);
+            }
         },
         NetAddr {
             @Override
@@ -163,6 +204,15 @@ public class ObjectInfos implements Comparable<OID>{
             @Override
             protected Object convert(Variable v) {
                 return ((IpAddress)v).getInetAddress();
+            }
+            @Override
+            protected String format(ObjectInfos oi, Variable v) {
+                IpAddress ip = (IpAddress) v;
+                return ip.getInetAddress().getHostName();
+            }
+            @Override
+            protected Variable parse(ObjectInfos oi, String text) {
+                return new org.snmp4j.smi.IpAddress(text);
             }
         },
         ObjID {
@@ -184,6 +234,14 @@ public class ObjectInfos implements Comparable<OID>{
             protected Object convert(Variable v) {
                 return v.toInt();
             }
+            @Override
+            protected String format(ObjectInfos oi, Variable v) {
+                return java.lang.String.valueOf(v.toInt());
+            }
+            @Override
+            protected Variable parse(ObjectInfos oi, String text) {
+                return new org.snmp4j.smi.Integer32(Integer.getInteger(text));
+            }
         },
         Integer32 {
             @Override
@@ -193,6 +251,14 @@ public class ObjectInfos implements Comparable<OID>{
             @Override
             protected Object convert(Variable v) {
                 return v.toInt();
+            }
+            @Override
+            protected String format(ObjectInfos oi, Variable v) {
+                return java.lang.String.valueOf(v.toInt());
+            }
+            @Override
+            protected Variable parse(ObjectInfos oi, String text) {
+                return new org.snmp4j.smi.Integer32(Integer.getInteger(text));
             }
         },
         Counter {
@@ -204,6 +270,14 @@ public class ObjectInfos implements Comparable<OID>{
             protected Object convert(Variable v) {
                 return v.toLong();
             }
+            @Override
+            protected String format(ObjectInfos oi, Variable v) {
+                return java.lang.String.valueOf(v.toInt());
+            }
+            @Override
+            protected Variable parse(ObjectInfos oi, String text) {
+                return new org.snmp4j.smi.Integer32(Integer.getInteger(text));
+            }
         },
         Counter64 {
             @Override
@@ -213,6 +287,14 @@ public class ObjectInfos implements Comparable<OID>{
             @Override
             protected Object convert(Variable v) {
                 return Utils.getUnsigned(v.toLong());
+            }
+            @Override
+            protected String format(ObjectInfos oi, Variable v) {
+                return java.lang.String.valueOf(v.toInt());
+            }
+            @Override
+            protected Variable parse(ObjectInfos oi, String text) {
+                return new org.snmp4j.smi.Integer32(Integer.getInteger(text));
             }
         },
         Gauge {
@@ -224,6 +306,14 @@ public class ObjectInfos implements Comparable<OID>{
             protected Object convert(Variable v) {
                 return v.toLong();
             }
+            @Override
+            protected String format(ObjectInfos oi, Variable v) {
+                return java.lang.String.valueOf(v.toLong());
+            }
+            @Override
+            protected Variable parse(ObjectInfos oi, String text) {
+                return new org.snmp4j.smi.Gauge32(Long.getLong(text));
+            }
         },
         TimeTicks {
             @Override
@@ -234,9 +324,19 @@ public class ObjectInfos implements Comparable<OID>{
             protected Object convert(Variable v) {
                 return new Double(1.0 * ((TimeTicks)v).toMilliseconds() / 1000.0);
             }
+            @Override
+            protected String format(ObjectInfos oi, Variable v) {
+                return v.toString();
+            }
         },
         ;
         protected abstract Variable getVariable();
+        protected String format(ObjectInfos oi, Variable v) {
+            return v.toString();
+        };
+        protected Variable parse(ObjectInfos oi, String text) {
+            return null;
+        };
         protected abstract Object convert(Variable v);
         public Object make(int[] in){
             Variable v = getVariable();
@@ -254,6 +354,7 @@ public class ObjectInfos implements Comparable<OID>{
     final Size size;
     final String range;
     final SnmpType type;
+    final MibTree tree;
 
     public ObjectInfos(MibTree tree, Map<Attribute, String> attr) {
         oidElements = attr.containsKey(Attribute.OID) ? Arrays.stream(attr.get(Attribute.OID).split("\\.")).mapToInt(i -> Integer.parseInt(i)).toArray() : null;
@@ -264,6 +365,7 @@ public class ObjectInfos implements Comparable<OID>{
         size = attr.containsKey(Attribute.SIZE) ? new Size(attr.get(Attribute.SIZE)) : null;
         range = attr.get(Attribute.RANGE);
         type = attr.containsKey(Attribute.TYPE) ? SnmpType.valueOf(attr.get(Attribute.TYPE)) : null;
+        this.tree = tree;
     }
 
     public ObjectInfos(int[] oidElements, String name) {
@@ -275,6 +377,7 @@ public class ObjectInfos implements Comparable<OID>{
         size = null;
         range = null;
         type = null;
+        tree = null;
     }
 
     @Override
@@ -319,6 +422,24 @@ public class ObjectInfos implements Comparable<OID>{
 
     public boolean oidEquals(int[] other) {
         return other != null && Arrays.equals(oidElements, other);
+    }
+
+    public Variable getVariable(String text) {
+        TextualConvention tc = tree.getTextualConvention(textcont);
+        if (tc != null) {
+            return tc.parse(text);
+        } else {
+            return type.parse(this, text);
+        }
+    }
+
+    public String format(Variable v) {
+        TextualConvention tc = tree.getTextualConvention(textcont);
+        if (tc != null) {
+            return tc.format(v);
+        } else {
+            return type.format(this, v);
+        }
     }
 
     @Override

@@ -21,6 +21,8 @@ import org.snmp4j.smi.OID;
 import fr.jrds.SmiExtensions.log.LogAdapter;
 import fr.jrds.SmiExtensions.objects.ObjectInfos;
 import fr.jrds.SmiExtensions.objects.ObjectInfos.Attribute;
+import fr.jrds.SmiExtensions.objects.TextualConvention;
+import fr.jrds.SmiExtensions.objects.TextualConvention.DateAndTime;
 
 public class MibTree {
 
@@ -48,6 +50,8 @@ public class MibTree {
 
     private final Map<OID, Map<Integer, String>> traps = new HashMap<>();
 
+    private final Map<String, TextualConvention> conventions = new HashMap<>();
+
     /**
      * Build a MIB tree, using default content
      */
@@ -61,6 +65,7 @@ public class MibTree {
      */
     public MibTree(boolean empty) {
         if(! empty) {
+            addTextualConvention(DateAndTime.class);
             InputStream is = getClass().getClassLoader().getResourceAsStream("mibstree.txt");
             try {
                 load(new InputStreamReader(is, Charset.forName("US-ASCII")), false);
@@ -304,4 +309,11 @@ public class MibTree {
         return traps.getOrDefault(oid, Collections.emptyMap()).getOrDefault(specific, Integer.toString(specific));
     }
 
+    public void addTextualConvention(Class<? extends TextualConvention> clazz) {
+        TextualConvention.addAnnotation(clazz, conventions);
+    }
+
+    public TextualConvention getTextualConvention(String textConventionName) {
+        return conventions.get(textConventionName);
+    }
 }
