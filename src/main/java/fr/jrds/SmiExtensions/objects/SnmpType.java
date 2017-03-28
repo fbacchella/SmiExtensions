@@ -2,6 +2,7 @@ package fr.jrds.SmiExtensions.objects;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,6 +57,10 @@ public enum SnmpType {
                 logger.error(var.toString());
             }
             return value;
+        }
+        @Override
+        public Variable parse(OidInfos oi, String text) {
+            return new org.snmp4j.smi.Opaque(text.getBytes());
         }
     },
     /**
@@ -166,6 +171,16 @@ public enum SnmpType {
             return v.toLong();
         }
     },
+    /**
+     * <ul>
+     * <li>{@link #getVariable()} return an empty {@link org.snmp4j.smi.IpAddress} variable.</li>
+     * <li>{@link #convert(Variable)} return a {@link java.net.InetAddress}.</li>
+     * <li>{@link #format(OidInfos, Variable)} try to resolve the hostname associated with the IP address.</li>
+     * <li>{@link #parse(OidInfos, String)} parse the string as an hostname or a IP address.</li>
+     * </ul>
+     * @author Fabrice Bacchella
+     *
+     */
     IpAddr {
         @Override
         public Variable getVariable() {
@@ -185,6 +200,16 @@ public enum SnmpType {
             return new org.snmp4j.smi.IpAddress(text);
         }
     },
+    /**
+     * <ul>
+     * <li>{@link #getVariable()} return an empty {@link org.snmp4j.smi.IpAddress} variable.</li>
+     * <li>{@link #convert(Variable)} return a {@link java.net.InetAddress}.</li>
+     * <li>{@link #format(OidInfos, Variable)} try to resolve the hostname associated with the IP address.</li>
+     * <li>{@link #parse(OidInfos, String)} parse the string as an hostname or a IP address.</li>
+     * </ul>
+     * @author Fabrice Bacchella
+     *
+     */
     NetAddr {
         @Override
         public Variable getVariable() {
@@ -212,6 +237,14 @@ public enum SnmpType {
         @Override
         public Object convert(Variable v) {
             return v;
+        }
+        @Override
+        public String format(OidInfos oi, Variable v) {
+            return ((OID)v).format();
+        }
+        @Override
+        public Variable parse(OidInfos oi, String text) {
+            return new OID(text);
         }
     },
     INTEGER {
@@ -334,8 +367,9 @@ public enum SnmpType {
     /**
      * <ul>
      * <li>{@link #getVariable()} return an empty {@link org.snmp4j.smi.TimeTicks} variable.</li>
-     * <li>{@link #convert(Variable)} return the time ticks as a number of seconds stored in a Double</li>
-     * <li>{@link #parse(OidInfos, String)} format the value using {@link org.snmp4j.smi.TimeTicks#toString()}
+     * <li>{@link #convert(Variable)} return the time ticks as a number of milliseconds stored in a Long</li>
+     * <li>{@link #format(OidInfos, Variable)} format the value using {@link org.snmp4j.smi.TimeTicks#toString()}
+     * <li>{@link #parse(OidInfos, String)} can parse a number, expressing timeticks or the result of {@link org.snmp4j.smi.TimeTicks#toString()}
      * </ul>
      * @author Fabrice Bacchella
      *
@@ -347,14 +381,39 @@ public enum SnmpType {
         }
         @Override
         public Object convert(Variable v) {
-            return new Double(1.0 * ((TimeTicks)v).toMilliseconds() / 1000.0);
+            return ((TimeTicks)v).toMilliseconds();
         }
         @Override
         public String format(OidInfos oi, Variable v) {
             return v.toString();
         }
+        @Override
+        public Variable parse(OidInfos oi, String text) {
+            try {
+                long duration = Long.parseLong(text);
+                return new org.snmp4j.smi.TimeTicks(duration);
+            } catch (NumberFormatException e) {
+                Matcher m = TimeTicksPattern.matcher(text);
+                if (m.matches()) {
+                    String days = m.group("days") != null ? m.group("days") : "0";
+                    String hours = m.group("hours");
+                    String minutes = m.group("minutes");
+                    String seconds = m.group("seconds");
+                    String fraction = m.group("fraction");
+                    String formatted = java.lang.String.format("P%sDT%sH%sM%s.%sS", days, hours, minutes,seconds, fraction);
+                    TimeTicks tt = new TimeTicks();
+                    tt.fromMilliseconds(Duration.parse(formatted).toMillis());
+                    return tt;
+                } else {
+                    return new org.snmp4j.smi.Null();
+                }
+            }
+        }
     },
     ;
+
+    // Used to parse time ticks
+    static final private Pattern TimeTicksPattern = Pattern.compile("(?:(?<days>\\d+) days?, )?(?<hours>\\d+):(?<minutes>\\d+):(?<seconds>\\d+)(?:\\.(?<fraction>\\d+))?");
 
     static final private LogAdapter logger = LogAdapter.getLogger(SnmpType.class);
 

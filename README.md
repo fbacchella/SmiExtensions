@@ -14,23 +14,14 @@ Dump for local dump are generated using:
 
 And then to use it in SNMP4J:
 
-    import org.snmp4j.SNMP4JSettings;
-    import fr.jrds.SmiExtensions.MibTree;
-    import java.io.FileReader
-  
-    public void init() {
-        MibTree resolver = new MibTree();
-        // And then for each custom dump
-        resolver.load(new FileReader(".../path_to_additionnals_tree_dump"));
-        SNMP4JSettings.setOIDTextFormat(new OIDFormatter(resolver));
-        SNMP4JSettings.setVariableTextFormat(formatter);
-    }
+        OIDFormatter.register()
 
 The formatter can't handle all SNMP's textual convention. So it's up to the user to write custom one.
 It's done by implementing the abstract class fr.jrds.SmiExtensions.objects.TextualConvention and then adding it in the tree:
 
     MibTree resolver = new MibTree();
-    resolver.addTextualConvention(CustomConvention.class)
+    OIDFormatter formater = new OIDFormatter(resolver)
+    formater.addTextualConvention(CustomConvention.class)
 
 It can also be used to split an index as Java object
 

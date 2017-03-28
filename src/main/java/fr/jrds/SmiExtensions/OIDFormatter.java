@@ -13,6 +13,7 @@ import org.snmp4j.util.VariableTextFormat;
 
 import fr.jrds.SmiExtensions.log.LogAdapter;
 import fr.jrds.SmiExtensions.objects.OidInfos;
+import fr.jrds.SmiExtensions.objects.SnmpType;
 import fr.jrds.SmiExtensions.objects.TextualConvention;
 
 public class OIDFormatter implements OIDTextFormat, VariableTextFormat {
@@ -20,13 +21,42 @@ public class OIDFormatter implements OIDTextFormat, VariableTextFormat {
     private static LogAdapter logger = LogAdapter.getLogger(OIDFormatter.class);
 
     private final MibTree resolver;
-    private final OIDTextFormat previous;
-    private final VariableTextFormat previousVar;
+    private OIDTextFormat previous;
+    private VariableTextFormat previousVar;
 
     public OIDFormatter(MibTree resolver) {
         this.resolver = resolver;
         previous = SNMP4JSettings.getOIDTextFormat();
         previousVar = SNMP4JSettings.getVariableTextFormat();
+    }
+
+    /**
+     * Register in SNMP4J a default {@link MibTree}, it can be called many times
+     * @return the new OIDFormatter
+     */
+    public static OIDFormatter register() {
+        MibTree resolver = new MibTree();
+        return register(resolver);
+    }
+
+    /**
+     * Register in SNMP4J a custom  {@link MibTree}, it can be called many times
+     * @param resolver the new OIDFormatter
+     * @return the new OIDFormatter
+     */
+    public static OIDFormatter register(MibTree resolver) {
+        OIDTextFormat previousTextFormat = SNMP4JSettings.getOIDTextFormat();
+        VariableTextFormat previousVarFormat = SNMP4JSettings.getVariableTextFormat();
+        OIDFormatter formatter = new OIDFormatter(resolver);
+        SNMP4JSettings.setOIDTextFormat(formatter);
+        SNMP4JSettings.setVariableTextFormat(formatter);
+        if (previousTextFormat instanceof OIDFormatter) {
+            formatter.previous = ((OIDFormatter) previousTextFormat).previous;
+        }
+        if (previousVarFormat instanceof OIDFormatter) {
+            formatter.previousVar = ((OIDFormatter) previousTextFormat).previousVar;
+        }
+        return formatter;
     }
 
     public void addTextualConvention(Class<? extends TextualConvention> clazz) {
@@ -91,25 +121,25 @@ public class OIDFormatter implements OIDTextFormat, VariableTextFormat {
     public Variable parse(int smiSyntax, String text) throws ParseException {
         switch (smiSyntax) {
         case SMIConstants.SYNTAX_COUNTER32:  // Value os unsigned int32
-            return new org.snmp4j.smi.Counter32(Long.parseLong(text));
+            return SnmpType.Counter.parse(null, text);
         case SMIConstants.SYNTAX_COUNTER64 :
-            return new org.snmp4j.smi.Counter64(Long.parseLong(text));
+            return SnmpType.Counter64.parse(null, text);
         case SMIConstants.SYNTAX_INTEGER:    // Also know as Integer32
-            return new org.snmp4j.smi.Integer32(Integer.parseInt(text));
+            return SnmpType.Integer32.parse(null, text);
         case SMIConstants.SYNTAX_GAUGE32:    // Also know as Unsigned32
-            return new org.snmp4j.smi.UnsignedInteger32(Long.parseLong(text));
+            return SnmpType.Unsigned32.parse(null, text);
         case SMIConstants.SYNTAX_IPADDRESS:
-            return new org.snmp4j.smi.IpAddress(text);
+            return SnmpType.IpAddr.parse(null, text);
         case SMIConstants.SYNTAX_NULL:
             return new org.snmp4j.smi.Null();
         case SMIConstants.SYNTAX_OBJECT_IDENTIFIER :
-            return new OID(resolver.getFromName(text));
-        case SMIConstants.SYNTAX_OCTET_STRING:
-            return new org.snmp4j.smi.OctetString(text.getBytes());
+            return SnmpType.ObjID.parse(null, text);
+        case SMIConstants.SYNTAX_OCTET_STRING:    // Also know as Bits
+            return SnmpType.String.parse(null, text);
         case SMIConstants.SYNTAX_OPAQUE:
-            return new org.snmp4j.smi.Opaque(text.getBytes());
+            return SnmpType.Opaque.parse(null, text);
         case SMIConstants.SYNTAX_TIMETICKS:
-            return new org.snmp4j.smi.TimeTicks(Long.parseLong(text));
+            return SnmpType.TimeTicks.parse(null, text);
         }
         logger.debug("parsing to variable %s with %d", text, smiSyntax);
         return previousVar.parse(smiSyntax, text);

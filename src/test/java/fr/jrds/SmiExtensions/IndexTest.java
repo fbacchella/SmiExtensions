@@ -50,7 +50,7 @@ public class IndexTest {
     public void testLldp() {
         OID trap = new OID(resolver.getFromName("lldpRemPortDesc"));
         trap.append("38400.3.1");
-        check(trap, "[lldpRemPortDesc, 384.0, 3, 1]");
+        check(trap, "[lldpRemPortDesc, 384000, 3, 1]");
     }
 
     @Test
