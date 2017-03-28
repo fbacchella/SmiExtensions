@@ -34,7 +34,7 @@ class Index {
         List<Object> indexesValues = new ArrayList<>();
         int[] oidParsed = Arrays.copyOf(oid, oid.length);
         for(String i: indexes) {
-            ObjectInfos oi = smi.getInfos(i);
+            OidInfos oi = smi.getInfos(i);
             logger.debug("found %s from %s", oi, i);
             if(oi == null) {
                 logger.error("index not found: %s", i);
@@ -55,7 +55,7 @@ class Index {
             }
             logger.debug("parsed %s from %s", parsed, oidParsed);
             Object v = oi.type.make(parsed.content);
-            if(oi.type == ObjectInfos.SnmpType.EnumVal) {
+            if(oi.type == SnmpType.EnumVal) {
                 Integer k = (Integer) v;
                 v = String.format("%s(%d)", oi.values.resolve(k), k);
             }

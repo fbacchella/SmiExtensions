@@ -12,7 +12,7 @@ import org.snmp4j.util.OIDTextFormat;
 import org.snmp4j.util.VariableTextFormat;
 
 import fr.jrds.SmiExtensions.log.LogAdapter;
-import fr.jrds.SmiExtensions.objects.ObjectInfos;
+import fr.jrds.SmiExtensions.objects.OidInfos;
 import fr.jrds.SmiExtensions.objects.TextualConvention;
 
 public class OIDFormatter implements OIDTextFormat, VariableTextFormat {
@@ -62,7 +62,7 @@ public class OIDFormatter implements OIDTextFormat, VariableTextFormat {
 
     @Override
     public String format(OID instanceOID, Variable variable, boolean withOID) {
-        ObjectInfos oi = resolver.searchInfos(instanceOID);
+        OidInfos oi = resolver.searchInfos(instanceOID);
         String formatted = oi.format(variable);
         if (formatted != null) {
             return formatted;
@@ -78,7 +78,7 @@ public class OIDFormatter implements OIDTextFormat, VariableTextFormat {
 
     @Override
     public Variable parse(OID classOrInstanceOID, String text) throws ParseException {
-        ObjectInfos oi = resolver.searchInfos(classOrInstanceOID);
+        OidInfos oi = resolver.searchInfos(classOrInstanceOID);
         Variable v = oi.getVariable(text);
         if (v != null) {
             return v;

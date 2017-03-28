@@ -19,10 +19,11 @@ import java.util.stream.Collectors;
 import org.snmp4j.smi.OID;
 
 import fr.jrds.SmiExtensions.log.LogAdapter;
-import fr.jrds.SmiExtensions.objects.ObjectInfos;
-import fr.jrds.SmiExtensions.objects.ObjectInfos.Attribute;
+import fr.jrds.SmiExtensions.objects.OidInfos;
+import fr.jrds.SmiExtensions.objects.OidInfos.Attribute;
 import fr.jrds.SmiExtensions.objects.TextualConvention;
 import fr.jrds.SmiExtensions.objects.TextualConvention.DateAndTime;
+import fr.jrds.SmiExtensions.objects.TextualConvention.StorageType;
 
 public class MibTree {
 
@@ -43,8 +44,8 @@ public class MibTree {
         p = Pattern.compile(String.format("^(?:%s)|(?:%s)|(?:%s)|(?:%s)|(?:%s)|(?:%s)|(?:%s)|(?:%s)$", line1, line2, line3, line4, line5, line6, line7, line8));
     }
 
-    private final Map<String, ObjectInfos> _names = new HashMap<>();
-    public final Map<String, ObjectInfos> names = Collections.unmodifiableMap(_names);
+    private final Map<String, OidInfos> _names = new HashMap<>();
+    public final Map<String, OidInfos> names = Collections.unmodifiableMap(_names);
 
     private final OidTreeNode top = new OidTreeNode();
 
@@ -65,21 +66,36 @@ public class MibTree {
      */
     public MibTree(boolean empty) {
         if(! empty) {
-            addTextualConvention(DateAndTime.class);
             InputStream is = getClass().getClassLoader().getResourceAsStream("mibstree.txt");
             try {
                 load(new InputStreamReader(is, Charset.forName("US-ASCII")), false);
             } catch (IOException e) {
                 throw new RuntimeException("impossible to load default mibstree", e);
             }
+            addTextualConvention(DateAndTime.class);
+            addTextualConvention(StorageType.class);
         }
     }
 
-    public void load(InputStream is) throws IOException {
-        load(new InputStreamReader(is, Charset.defaultCharset()), true);
+    /**
+     * Add a new MIB from a input stream
+     * @param stream the MIB stream
+     * @throws IOException if source can't be read
+     */
+    public void load(InputStream stream) throws IOException {
+        load(new InputStreamReader(stream, Charset.defaultCharset()), true);
     }
 
-    public void load(Reader reader, boolean reload) throws IOException {
+    /**
+     * Add a new mib from a reader
+     * @param reader the MIB reader
+     * @throws IOException if source can't be read
+     */
+    public void load(Reader reader) throws IOException {
+        load(reader, true);
+    }
+
+    private void load(Reader reader, boolean reload) throws IOException {
         BufferedReader linereader = new BufferedReader(reader);
         int linenumber = 0;
         int olddepth = -1;
@@ -162,7 +178,7 @@ public class MibTree {
 
     private void saveObject(Map<Attribute, String> current, boolean inTrapList, boolean reload) {
         if(current.size() > 0) {
-            ObjectInfos oi = new ObjectInfos(this, current);
+            OidInfos oi = new OidInfos(this, current);
             if(oi.getOidElements() != null && oi.getName() != null && ! inTrapList) {
                 top.add(oi);
                 // warning about duplicate names are not sent when adding a new tree
@@ -184,7 +200,7 @@ public class MibTree {
     }
 
     /**
-     * Parse an OID that contains an array's index and resolve it.
+     * Parse an OID that contains an array's index and split it in sub component.
      * @param oid
      * @return a array of index parts, starting with the entry name
      */
@@ -198,7 +214,7 @@ public class MibTree {
         parts.add(found.getObject().getName());
         //The full path was not found, try to resolve the left other
         if(foundOID.length < oid.length ) {
-            ObjectInfos parent = top.find(Arrays.copyOf(foundOID, foundOID.length -1 )).getObject();
+            OidInfos parent = top.find(Arrays.copyOf(foundOID, foundOID.length -1 )).getObject();
             if(parent != null && parent.isIndex()) {
                 int[] index = Arrays.copyOfRange(oid, foundOID.length, oid.length);
                 Arrays.stream(parent.resolve(index)).forEach(i -> parts.add(i));
@@ -208,7 +224,7 @@ public class MibTree {
     }
 
     /**
-     * Parse an OID that contains an array's index and resolve it.
+     * Parse an OID that contains an array's index and split it in sub component.
      * @param oid The OID to parse
      * @return a array of index parts, starting with the entry name
      */
@@ -216,25 +232,7 @@ public class MibTree {
         return parseIndexOID(oid.getValue());
     }
 
-    public ObjectInfos searchInfos(String oidString) {
-        if(names.containsKey(oidString)) {
-            return names.get(oidString);
-        } else {
-            try {
-                int [] oidElements = Arrays.stream(oidString.split("\\.")).mapToInt(i -> Integer.parseInt(i)).toArray();
-                OidTreeNode node = top.search(oidElements);
-                if(node != null) {
-                    return node.getObject();
-                }
-            } catch (NumberFormatException e) {
-                //parsing failed, was not an oid
-            }
-        }
-        //Nothing works, give up
-        return null;
-    }
-
-    public ObjectInfos searchInfos(int[] oidElements) {
+    private OidInfos searchInfos(int[] oidElements) {
         OidTreeNode node = top.search(oidElements);
         if(node != null) {
             return node.getObject();
@@ -243,20 +241,18 @@ public class MibTree {
         }
     }
 
-    public ObjectInfos searchInfos(OID oid) {
-        return searchInfos(oid.getValue());
-    }
-
-    public ObjectInfos getInfos(String oidString) {
+    /**
+     * Parse a string and return the associated node's object info. It can be an OID or a OID name
+     * @param oidString
+     * @return
+     */
+    public OidInfos searchInfos(String oidString) {
         if(names.containsKey(oidString)) {
             return names.get(oidString);
         } else {
             try {
                 int [] oidElements = Arrays.stream(oidString.split("\\.")).mapToInt(i -> Integer.parseInt(i)).toArray();
-                OidTreeNode node = top.find(oidElements);
-                if(node != null) {
-                    return node.getObject();
-                }
+                return searchInfos(oidElements);
             } catch (NumberFormatException e) {
                 //parsing failed, was not an oid
             }
@@ -265,16 +261,40 @@ public class MibTree {
         return null;
     }
 
-    public ObjectInfos getInfos(int[] oidElements) {
-        OidTreeNode node = top.find(oidElements);
-        if(node != null) {
-            return node.getObject();
-        } else {
-            return null;
-        }
+    /**
+     * Return the associated nodes's object info from an OID.
+     * @param oid
+     * @return
+     */
+   public OidInfos searchInfos(OID oid) {
+        return searchInfos(oid.getValue());
     }
 
-    public ObjectInfos getInfos(OID oid) {
+   private OidInfos getInfos(int[] oidElements) {
+       OidTreeNode node = top.find(oidElements);
+       if(node != null) {
+           return node.getObject();
+       } else {
+           return null;
+       }
+   }
+
+    public OidInfos getInfos(String oidString) {
+        if(names.containsKey(oidString)) {
+            return names.get(oidString);
+        } else {
+            try {
+                int [] oidElements = Arrays.stream(oidString.split("\\.")).mapToInt(i -> Integer.parseInt(i)).toArray();
+                return getInfos(oidElements);
+            } catch (NumberFormatException e) {
+                //parsing failed, was not an oid
+            }
+        }
+        //Nothing works, give up
+        return null;
+    }
+
+    public OidInfos getInfos(OID oid) {
         return getInfos(oid.getValue());
     }
 
@@ -286,7 +306,7 @@ public class MibTree {
         }
     }
 
-    public ObjectInfos getParent(int[] oidElements) {
+    public OidInfos getParent(int[] oidElements) {
         OidTreeNode node = top.search(Arrays.copyOf(oidElements, oidElements.length - 1));
         if(node != null) {
             return node.getObject();
@@ -295,7 +315,7 @@ public class MibTree {
         }
     }
 
-    public ObjectInfos getParent(OID oid) {
+    public OidInfos getParent(OID oid) {
         return getParent(oid.getValue());
     }
 

@@ -8,7 +8,7 @@ public class ObjectInfoTest {
 
     @Test
     public void testCompare() {
-        ObjectInfos oi = new ObjectInfos(new int[] {1, 2, 3, 4}, "test");
+        OidInfos oi = new OidInfos(new int[] {1, 2, 3, 4}, "test");
         Assert.assertEquals(3, oi.compareTo(new OID(new int[] {1, 2})));
         Assert.assertEquals(0, oi.compareTo(new OID(new int[] {1, 2, 3, 4})));
         Assert.assertEquals(-5, oi.compareTo(new OID(new int[] {1, 2, 3, 4, 5, 6})));

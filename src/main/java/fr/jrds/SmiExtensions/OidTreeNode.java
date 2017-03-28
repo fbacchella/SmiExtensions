@@ -6,11 +6,11 @@ import java.util.Map;
 
 import org.snmp4j.smi.OID;
 
-import fr.jrds.SmiExtensions.objects.ObjectInfos;
+import fr.jrds.SmiExtensions.objects.OidInfos;
 
 class OidTreeNode {
 
-    private final ObjectInfos object;
+    private final OidInfos object;
     private final Map<Integer, OidTreeNode> childs = new HashMap<Integer, OidTreeNode>();
     private final OidTreeNode root;
 
@@ -19,13 +19,17 @@ class OidTreeNode {
         root = this;
     }
 
-    private OidTreeNode(OidTreeNode parent, int id, ObjectInfos object) {
+    private OidTreeNode(OidTreeNode parent, int id, OidInfos object) {
         this.object = object;
         parent.childs.put(id, this);
         this.root = parent.root;
     }
 
-    public void add(ObjectInfos object) {
+    /**
+     * Added a new node at the right place in the tree
+     * @param object
+     */
+    public void add(OidInfos object) {
         int[] oidElements = object.getOidElements();
         if(find(oidElements) != null) {
             //already exists, don't add
@@ -46,7 +50,10 @@ class OidTreeNode {
         }
     }
 
-    public ObjectInfos getObject() {
+    /**
+     * @return The node content
+     */
+    public OidInfos getObject() {
         return object;
     }
 

@@ -10,7 +10,7 @@ public class Utils {
         return Arrays.stream(elements).mapToObj(i -> Long.toString(i & 0xFFFFFFFFL)).collect(Collectors.joining("."));
     }
 
-    static final class UnsignedLong extends Number implements Comparable<Long>{
+    public static final class UnsignedLong extends Number implements Comparable<Long>{
         private final long l;
 
         public UnsignedLong(long l) {
