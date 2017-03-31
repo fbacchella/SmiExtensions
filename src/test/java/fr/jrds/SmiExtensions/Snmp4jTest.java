@@ -1,4 +1,4 @@
-package fr.jrds.SmiExtensions;
+package fr.jrds.smiextensions;
 
 import java.io.IOException;
 
@@ -9,9 +9,9 @@ import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.log.LogLevel;
 import org.snmp4j.smi.OID;
 
-import fr.jrds.SmiExtensions.MibTree;
-import fr.jrds.SmiExtensions.OIDFormatter;
-import fr.jrds.SmiExtensions.utils.LogUtils;
+import fr.jrds.smiextensions.MibTree;
+import fr.jrds.smiextensions.OIDFormatter;
+import fr.jrds.smiextensions.utils.LogUtils;
 
 public class Snmp4jTest {
 

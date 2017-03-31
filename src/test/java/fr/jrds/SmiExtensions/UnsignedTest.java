@@ -1,10 +1,10 @@
-package fr.jrds.SmiExtensions;
+package fr.jrds.smiextensions;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.snmp4j.smi.Counter64;
 
-import fr.jrds.SmiExtensions.Utils.UnsignedLong;
+import fr.jrds.smiextensions.Utils.UnsignedLong;
 
 public class UnsignedTest {
 

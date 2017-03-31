@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fr.jrds</groupId>
-    <artifactId>SmiExtensions</artifactId>
+    <artifactId>smiextensions</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <prerequisites>

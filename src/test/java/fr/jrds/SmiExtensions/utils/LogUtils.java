@@ -1,10 +1,10 @@
-package fr.jrds.SmiExtensions.utils;
+package fr.jrds.smiextensions.utils;
 
 import org.snmp4j.log.ConsoleLogFactory;
 import org.snmp4j.log.LogFactory;
 import org.snmp4j.log.LogLevel;
 
-import fr.jrds.SmiExtensions.log.LogAdapter;
+import fr.jrds.smiextensions.log.LogAdapter;
 
 public class LogUtils {
 

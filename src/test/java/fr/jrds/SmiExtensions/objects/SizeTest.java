@@ -1,9 +1,9 @@
-package fr.jrds.SmiExtensions.objects;
+package fr.jrds.smiextensions.objects;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import fr.jrds.SmiExtensions.objects.Size;
+import fr.jrds.smiextensions.objects.Size;
 
 public class SizeTest {
 

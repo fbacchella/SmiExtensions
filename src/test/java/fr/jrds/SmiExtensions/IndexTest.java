@@ -1,4 +1,4 @@
-package fr.jrds.SmiExtensions;
+package fr.jrds.smiextensions;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -14,8 +14,8 @@ import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.VariableBinding;
 
-import fr.jrds.SmiExtensions.log.LogAdapter;
-import fr.jrds.SmiExtensions.utils.LogUtils;
+import fr.jrds.smiextensions.log.LogAdapter;
+import fr.jrds.smiextensions.utils.LogUtils;
 
 public class IndexTest {
 

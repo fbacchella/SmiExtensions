@@ -1,4 +1,4 @@
-package fr.jrds.SmiExtensions;
+package fr.jrds.smiextensions;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -6,7 +6,7 @@ import java.util.Map;
 
 import org.snmp4j.smi.OID;
 
-import fr.jrds.SmiExtensions.objects.OidInfos;
+import fr.jrds.smiextensions.objects.OidInfos;
 
 class OidTreeNode {
 

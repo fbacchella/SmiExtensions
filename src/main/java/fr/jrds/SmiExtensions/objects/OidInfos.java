@@ -1,4 +1,4 @@
-package fr.jrds.SmiExtensions.objects;
+package fr.jrds.smiextensions.objects;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -6,7 +6,7 @@ import java.util.Map;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.Variable;
 
-import fr.jrds.SmiExtensions.MibTree;
+import fr.jrds.smiextensions.MibTree;
 
 /**
  * Store the OID's associated info, parsed from a net-snmp mib tree

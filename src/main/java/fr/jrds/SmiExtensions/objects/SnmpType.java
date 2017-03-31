@@ -1,4 +1,4 @@
-package fr.jrds.SmiExtensions.objects;
+package fr.jrds.smiextensions.objects;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -16,8 +16,8 @@ import org.snmp4j.smi.Opaque;
 import org.snmp4j.smi.TimeTicks;
 import org.snmp4j.smi.Variable;
 
-import fr.jrds.SmiExtensions.Utils;
-import fr.jrds.SmiExtensions.log.LogAdapter;
+import fr.jrds.smiextensions.Utils;
+import fr.jrds.smiextensions.log.LogAdapter;
 
 /**
  * A enumeration of Snmp types to help conversion and parsing.

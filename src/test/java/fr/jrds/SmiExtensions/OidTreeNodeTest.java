@@ -1,4 +1,4 @@
-package fr.jrds.SmiExtensions;
+package fr.jrds.smiextensions;
 
 import java.io.IOException;
 
@@ -7,8 +7,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.snmp4j.log.LogLevel;
 
-import fr.jrds.SmiExtensions.objects.OidInfos;
-import fr.jrds.SmiExtensions.utils.LogUtils;
+import fr.jrds.smiextensions.objects.OidInfos;
+import fr.jrds.smiextensions.utils.LogUtils;
 
 public class OidTreeNodeTest {
 

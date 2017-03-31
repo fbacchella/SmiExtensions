@@ -1,4 +1,4 @@
-package fr.jrds.SmiExtensions.log;
+package fr.jrds.smiextensions.log;
 
 import java.util.Iterator;
 

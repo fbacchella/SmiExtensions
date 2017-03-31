@@ -1,6 +1,6 @@
-package fr.jrds.SmiExtensions.objects;
+package fr.jrds.smiextensions.objects;
 
-import fr.jrds.SmiExtensions.Utils;
+import fr.jrds.smiextensions.Utils;
 
 public class Parsed {
     public int[] content = null;

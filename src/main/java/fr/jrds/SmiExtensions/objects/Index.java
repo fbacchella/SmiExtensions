@@ -1,4 +1,4 @@
-package fr.jrds.SmiExtensions.objects;
+package fr.jrds.smiextensions.objects;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import fr.jrds.SmiExtensions.MibTree;
-import fr.jrds.SmiExtensions.log.LogAdapter;
+import fr.jrds.smiextensions.MibTree;
+import fr.jrds.smiextensions.log.LogAdapter;
 
 class Index {
 

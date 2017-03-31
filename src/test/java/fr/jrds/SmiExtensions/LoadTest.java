@@ -1,4 +1,4 @@
-package fr.jrds.SmiExtensions;
+package fr.jrds.smiextensions;
 
 import java.io.IOException;
 
@@ -6,8 +6,9 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.snmp4j.log.LogLevel;
+import org.snmp4j.smi.OID;
 
-import fr.jrds.SmiExtensions.utils.LogUtils;
+import fr.jrds.smiextensions.utils.LogUtils;
 
 
 public class LoadTest {

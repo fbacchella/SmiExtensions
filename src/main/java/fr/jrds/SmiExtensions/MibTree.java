@@ -1,4 +1,4 @@
-package fr.jrds.SmiExtensions;
+package fr.jrds.smiextensions;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,12 +18,12 @@ import java.util.stream.Collectors;
 
 import org.snmp4j.smi.OID;
 
-import fr.jrds.SmiExtensions.log.LogAdapter;
-import fr.jrds.SmiExtensions.objects.OidInfos;
-import fr.jrds.SmiExtensions.objects.OidInfos.Attribute;
-import fr.jrds.SmiExtensions.objects.TextualConvention;
-import fr.jrds.SmiExtensions.objects.TextualConvention.DateAndTime;
-import fr.jrds.SmiExtensions.objects.TextualConvention.StorageType;
+import fr.jrds.smiextensions.log.LogAdapter;
+import fr.jrds.smiextensions.objects.OidInfos;
+import fr.jrds.smiextensions.objects.OidInfos.Attribute;
+import fr.jrds.smiextensions.objects.TextualConvention;
+import fr.jrds.smiextensions.objects.TextualConvention.DateAndTime;
+import fr.jrds.smiextensions.objects.TextualConvention.StorageType;
 
 public class MibTree {
 

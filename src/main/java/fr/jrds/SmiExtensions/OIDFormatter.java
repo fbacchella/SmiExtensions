@@ -1,4 +1,4 @@
-package fr.jrds.SmiExtensions;
+package fr.jrds.smiextensions;
 
 import java.text.ParseException;
 import java.util.stream.IntStream;
@@ -11,10 +11,10 @@ import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.util.OIDTextFormat;
 import org.snmp4j.util.VariableTextFormat;
 
-import fr.jrds.SmiExtensions.log.LogAdapter;
-import fr.jrds.SmiExtensions.objects.OidInfos;
-import fr.jrds.SmiExtensions.objects.SnmpType;
-import fr.jrds.SmiExtensions.objects.TextualConvention;
+import fr.jrds.smiextensions.log.LogAdapter;
+import fr.jrds.smiextensions.objects.OidInfos;
+import fr.jrds.smiextensions.objects.SnmpType;
+import fr.jrds.smiextensions.objects.TextualConvention;
 
 public class OIDFormatter implements OIDTextFormat, VariableTextFormat {
 
