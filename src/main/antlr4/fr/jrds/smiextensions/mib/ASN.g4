@@ -154,7 +154,7 @@ sequenceType :
     'SEQUENCE' '{' (namedType ','* )+ '}'
     ;
 
-extensionAndException :  ELLIPSIS  exceptionSpec?
+extensionAndException :  ELLIPSIS
 ;
 optionalExtensionMarker :  ( COMMA  ELLIPSIS )?
 ;
@@ -196,13 +196,11 @@ parameterizedAssignment :
 (ASSIGN_OP
     (type
         |   value
-        |   valueSet
     )
 )
 |( definedObjectClass ASSIGN_OP
     ( object
         |   objectClass
-        |   objectSet
     )
 
 )
@@ -262,10 +260,6 @@ fieldSpec :
     '&' IDENTIFIER
     (
       typeOptionalitySpec?
-    | type (valueSetOptionalitySpec?  | UNIQUE_LITERAL? valueOptionalitySpec? )
-    | fieldName (OPTIONAL_LITERAL | (DEFAULT_LITERAL (valueSet | value)))?
-    | definedObjectClass (OPTIONAL_LITERAL | (DEFAULT_LITERAL (objectSet | object)))?
-
     )
     ;
 
@@ -281,11 +275,6 @@ valueOptionalitySpec : OPTIONAL_LITERAL | (DEFAULT_LITERAL value)
 variableTypeValueFieldSpec : '&' IDENTIFIER  fieldName valueOptionalitySpec ?
 ;
 
-fixedTypeValueSetFieldSpec : '&' IDENTIFIER   type valueSetOptionalitySpec ?
-;
-
-valueSetOptionalitySpec : OPTIONAL_LITERAL | DEFAULT_LITERAL valueSet
-;
 
 object : definedObject /*| objectDefn | objectFromObject */|  parameterizedObject
 ;
@@ -296,41 +285,22 @@ parameterizedObject : definedObject actualParameterList
 definedObject
     :   IDENTIFIER ('.')?
     ;
-objectSet : L_BRACE objectSetSpec R_BRACE
-;
-objectSetSpec :
-  rootElementSetSpec (COMMA ELLIPSIS (COMMA additionalElementSetSpec )?)?
- | ELLIPSIS (COMMA additionalElementSetSpec )?
-;
 
 
 fieldName :('&' IDENTIFIER)(AMPERSAND IDENTIFIER DOT)*
 ;
-valueSet : L_BRACE elementSetSpecs R_BRACE
-;
-elementSetSpecs :
- rootElementSetSpec (COMMA ELLIPSIS (COMMA additionalElementSetSpec)?)?
-    ;
-rootElementSetSpec : elementSetSpec
-;
-additionalElementSetSpec : elementSetSpec
-;
-elementSetSpec : unions | ALL_LITERAL exclusions
-;
-unions :   (intersections) (unionMark intersections)*
-;
-exclusions : EXCEPT_LITERAL elements
-;
-intersections : (intersectionElements) (intersectionMark intersectionElements)*
-;
-unionMark  :  PIPE  |  UNION_LITERAL
-;
 
-intersectionMark  :  POWER |  INTERSECTION_LITERAL
-;
+
+unionMark :
+    PIPE
+    | UNION_LITERAL
+    ;
 
 elements :
-    subtypeElements
+    ((value | MIN_LITERAL) LESS_THAN?  DOUBLE_DOT LESS_THAN?  (value | MAX_LITERAL) )
+    | sizeConstraint
+    | (PATTERN_LITERAL value)
+    | value
     ;
 
 objectSetElements :
@@ -338,35 +308,21 @@ objectSetElements :
 ;
 
 
-intersectionElements : elements (exclusions)?
-;
-subtypeElements :
-  ((value | MIN_LITERAL) LESS_THAN?  DOUBLE_DOT LESS_THAN?  (value | MAX_LITERAL) )
-  |sizeConstraint
- | (PATTERN_LITERAL value)
- | value
-;
-
-
-variableTypeValueSetFieldSpec :
-    AMPERSAND IDENTIFIER fieldName valueSetOptionalitySpec?
-    ;
-
 objectFieldSpec : AMPERSAND IDENTIFIER definedObjectClass objectOptionalitySpec?
 ;
 objectOptionalitySpec : OPTIONAL_LITERAL | DEFAULT_LITERAL object
 ;
-objectSetFieldSpec : AMPERSAND IDENTIFIER definedObjectClass objectSetOptionalitySpec ?
-;
-objectSetOptionalitySpec : OPTIONAL_LITERAL | DEFAULT_LITERAL objectSet
-;
+
 
 typeAssignment :
       ASSIGN_OP
-    ( '[' APPLICATION_LITERAL NUMBER ']' )?
+    ( '[' application_details ']' )?
     (IMPLICIT_LITERAL)?
       type
 ;
+
+application_details:
+    APPLICATION_LITERAL NUMBER;
 
 complexAssignement : 
     macroName
@@ -519,41 +475,8 @@ IDENTIFIER (DOT IDENTIFIER)? actualParameterList?
 ;
 
 
-constraint :L_PARAN constraintSpec  exceptionSpec R_PARAN
-//L_PARAN value DOT_DOT value R_PARAN
-;
-
-constraintSpec : generalConstraint | subtypeConstraint
-;
-userDefinedConstraint : CONSTRAINED_LITERAL BY_LITERAL L_BRACE userDefinedConstraintParameter (COMMA userDefinedConstraintParameter)* R_BRACE
-;
-
-generalConstraint :  userDefinedConstraint | tableConstraint | contentsConstraint
-;
-userDefinedConstraintParameter :
-    governor (COLON
-        value
-        | valueSet
-        | object
-        | objectSet
-        )?
-;
-
-tableConstraint : /*simpleTableConstraint |*/ componentRelationConstraint
-;
-simpleTableConstraint : objectSet
-;
-
-
-contentsConstraint :
-   CONTAINING_LITERAL type
- |  ENCODED_LITERAL BY_LITERAL value
- |  CONTAINING_LITERAL type ENCODED_LITERAL BY_LITERAL value
-;
-
-
-subtypeConstraint :
-    elementSetSpecs
+constraint :
+    '(' elements (unionMark elements)* ')'
     ;
 
 value
@@ -632,7 +555,7 @@ namedType :
 
 enumeratedType : ENUMERATED_LITERAL L_BRACE enumerations R_BRACE
 ;
-enumerations :rootEnumeration (COMMA   ELLIPSIS exceptionSpec (COMMA   additionalEnumeration )?)?
+enumerations :rootEnumeration (COMMA   ELLIPSIS (COMMA   additionalEnumeration )?)?
     ;
 rootEnumeration : enumeration
 ;
@@ -658,8 +581,7 @@ actualParameterList : L_BRACE actualParameter (COMMA actualParameter)* R_BRACE
 ;
 actualParameter : type | value /*| valueSet | definedObjectClass | object | objectSet*/
 ;
-exceptionSpec : (EXCLAM  exceptionIdentification)?
-;
+
 exceptionIdentification : signedNumber
  |     definedValue
  |     type COLON value
