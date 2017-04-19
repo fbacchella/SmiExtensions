@@ -6,6 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -112,11 +115,115 @@ public abstract class TextualConvention {
         }
     };
 
+    private static class DisplayHint extends TextualConvention {
+        private static final Pattern element = Pattern.compile("(.*?)(\\*)(\\d*)([dxatob])([^\\d\\*]?)(-\\d+)?");
+        private static final Charset ASCII = Charset.forName("US-ASCII");
+        private static final Charset UTF8 = Charset.forName("UTF-8");
+        private final String hint;
+        String[] paddings;
+        Integer[] sizes;
+        Character[] formats;
+        Character[] decimals;
+
+        DisplayHint(String name, String hint) {
+            super(name);
+            this.hint = hint;
+            Matcher m = element.matcher(hint);
+            List<String> paddings = new ArrayList<>();
+            List<Integer> sizes = new ArrayList<>();
+            List<Character> formats = new ArrayList<>();
+            List<Integer> decimals = new ArrayList<>();
+            int end = -1;
+            while (m.find()){
+                System.out.format("%s '%s' '%s' '%s'\n", m, m.group(2), m.group(2), m.group(3));
+                paddings.add(m.group(1));
+                if (! m.group(2).isEmpty()) {
+                    sizes.add(Integer.parseInt(m.group(2)));
+                } else {
+                    sizes.add(1);
+                }
+                formats.add(m.group(3).charAt(0));
+                if (m.group(4) != null) {
+                    decimals.add(Integer.parseInt(m.group(2).substring(1)));
+                } else {
+                    decimals.add(1);
+                }
+                end = m.end();
+            }
+            paddings.add(hint.substring(end));
+            this.paddings = paddings.toArray(new String[paddings.size()]);
+            this.sizes = sizes.toArray(new Integer[sizes.size()]);
+            this.formats = formats.toArray(new Character[formats.size()]);
+            this.decimals = formats.toArray(new Character[decimals.size()]);
+            System.out.println(paddings);
+            System.out.println(sizes);
+            System.out.println(formats);
+        }
+
+        @Override
+        public String format(Variable v) {
+            OctetString os = (org.snmp4j.smi.OctetString) v;
+            ByteBuffer buffer = ByteBuffer.wrap(os.toByteArray());
+            buffer.order(ByteOrder.BIG_ENDIAN);
+            StringBuilder formatted = new StringBuilder();
+            for (int i = 0 ; i < sizes.length; i++) {
+                formatted.append(paddings[i]);
+                int size = sizes[i];
+                switch (formats[i]) {
+                case 'd':
+                    switch (size) {
+                    case 1:
+                        formatted.append(buffer.get());
+                        break;
+                    case 2:
+                        formatted.append(buffer.getShort());
+                        break;
+                    case 4:
+                        formatted.append(buffer.getInt());
+                        break;
+                    }
+                    break;
+                case 'x':
+                    switch (size) {
+                    case 1:
+                        formatted.append(String.format("%x", buffer.get()));
+                        break;
+                    case 2:
+                        formatted.append(String.format("%x", buffer.getShort()));
+                        break;
+                    case 4:
+                        formatted.append(String.format("%x", buffer.getInt()));
+                        break;
+                    }
+                    break;
+                case 'a':
+                case 't':
+                    byte[] sub =new byte[sizes[i]];
+                    buffer.get(sub);
+                    formatted.append(new String(sub, formats[i] == 'a' ? ASCII : UTF8));
+                    break;
+                }
+            }
+            formatted.append(paddings[paddings.length - 1]);
+            return formatted.toString();
+        }
+
+        @Override
+        public Variable parse(String text) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+    }
+
     public final String name;
 
     protected TextualConvention() {
         Name annotation = getClass().getAnnotation(Name.class);
         name = annotation.value();
+    }
+
+    protected TextualConvention(String name) {
+        this.name = name;
     }
 
     public abstract String format(Variable v);
@@ -133,6 +240,10 @@ public abstract class TextualConvention {
         } else {
             throw new IllegalArgumentException("Missing name annotation for TextualConvention");
         }
+    }
+
+    public static void addAnnotation(String name, String displayHint, Map<String, TextualConvention> annotations) {
+        annotations.put(name, new DisplayHint(name, displayHint));
     }
 
 }

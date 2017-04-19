@@ -59,8 +59,21 @@ public class OIDFormatter implements OIDTextFormat, VariableTextFormat {
         return formatter;
     }
 
+    /**
+     * Added a new custom TextualConvention to the current mib base
+     * @param clazz
+     */
     public void addTextualConvention(Class<? extends TextualConvention> clazz) {
         resolver.addTextualConvention(clazz);
+    }
+
+    /**
+     * Added a new TextualConvention described using a display hint string to the current mib base
+     * @param name the name of the textual convention
+     * @param displayHint, taken from the <code>DISPLAY-HINT</code> field from the <code>TEXTUAL-CONVENTION</code>.
+     */
+    public void addTextualConvention(String name, String displayHint) {
+        resolver.addTextualConvention(name, displayHint);
     }
 
     @Override

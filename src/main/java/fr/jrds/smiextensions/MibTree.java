@@ -329,8 +329,21 @@ public class MibTree {
         return traps.getOrDefault(oid, Collections.emptyMap()).getOrDefault(specific, Integer.toString(specific));
     }
 
+    /**
+     * Added a new custom TextualConvention to the current mib base
+     * @param clazz
+     */
     public void addTextualConvention(Class<? extends TextualConvention> clazz) {
         TextualConvention.addAnnotation(clazz, conventions);
+    }
+
+    /**
+     * Added a new TextualConvention described using a display hint string to the current mib base
+     * @param name the name of the textual convention
+     * @param displayHint, taken from the <code>DISPLAY-HINT</code> field from the <code>TEXTUAL-CONVENTION</code>.
+     */
+    public void addTextualConvention(String name, String displayHint) {
+        TextualConvention.addAnnotation(name, displayHint, conventions);
     }
 
     public TextualConvention getTextualConvention(String textConventionName) {
