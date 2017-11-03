@@ -18,7 +18,7 @@ import fr.jrds.smiextensions.objects.TextualConvention;
 
 public class OIDFormatter implements OIDTextFormat, VariableTextFormat {
 
-    private static LogAdapter logger = LogAdapter.getLogger(OIDFormatter.class);
+    private static final LogAdapter logger = LogAdapter.getLogger(OIDFormatter.class);
 
     private final MibTree resolver;
     private OIDTextFormat previous;
