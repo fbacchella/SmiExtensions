@@ -10,7 +10,7 @@ import fr.jrds.smiextensions.log.LogAdapter;
 
 public class Size {
 
-    LogAdapter logger = LogAdapter.getLogger(Size.class);
+    private final static LogAdapter logger = LogAdapter.getLogger(Size.class);
 
     private static class Range {
         final int from;
